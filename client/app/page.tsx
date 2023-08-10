@@ -1,14 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import {
-  apiClient,
-  GenerateEmbeddingsRequest,
-  GenerateEmbeddingsResponse,
-  generateEmbeddings,
-} from "./config";
-import { useState } from "react";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -22,33 +13,61 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import { useState } from "react";
+import { generateEmbeddings } from "./config";
+import { evaluate } from "mathjs";
+import { cosineSimilarity } from "./math";
 
 const models = [
   { value: "hkunlp/instructor-large", label: "Instructor Large" },
 ];
 
+interface EmbeddingInfo {
+  instruction: string | null;
+  text: string | null;
+  embedding: number[];
+}
+
 export default function Home() {
   const [open, setOpen] = useState(false);
   const [modelValue, setModelValue] = useState("");
-  const [instruction, setInstruction] = useState("");
-  const [text, setText] = useState("");
-  const [embedding, setEmbedding] = useState<number[]>([]);
+  const [embeddingInfo, setEmbeddingInfo] = useState<EmbeddingInfo[]>([]);
+  const [mathExpression, setMathExpression] = useState<string>("");
 
-  const submitHandler = async () => {
-    console.log(instruction);
-    console.log(text);
-    const response = await generateEmbeddings({
-      embed_model_name: modelValue,
-      instruction: instruction,
-      text: text,
-    });
-    console.log(response);
-    setEmbedding(response.embeddings);
+  const generateEmbeddingsHandler = async () => {
+    for (const info of embeddingInfo) {
+      const response = await generateEmbeddings({
+        embed_model_name: modelValue,
+        instruction: info.instruction,
+        text: info.text || "",
+      });
+      setEmbeddingInfo([
+        ...embeddingInfo,
+        {
+          instruction: info.instruction,
+          text: info.text,
+          embedding: response.embeddings,
+        },
+      ]);
+    }
   };
 
-  console.log(modelValue);
+  const evaluateHandler = () => {
+    const scope: Record<string, any> = {
+      v1: [1, 2, 3],
+      v2: [5, 3, 4],
+      cosineSimilarity: cosineSimilarity,
+    };
+    try {
+      const result = evaluate(mathExpression, scope);
+      console.log(result);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <main className="border">
@@ -100,25 +119,60 @@ export default function Home() {
         </PopoverContent>
       </Popover>
       {/* MODEL DROPDOWN END */}
-      <h3>Instruction</h3>
+      {/* EMBEDDING INPUT START */}
+      <div className="flex flex-col space-y-4">
+        {/* EMBEDDING INPUT ROW START */}
+        {embeddingInfo.map((info, index) => (
+          <div key={index} className="flex flex-col space-y-4">
+            <div className="flex flex-row space-x-4">
+              <Textarea
+                placeholder="Enter instruction..."
+                value={info.instruction || ""}
+                onChange={(e) => {
+                  const newEmbeddingInfo = [...embeddingInfo];
+                  newEmbeddingInfo[index].instruction = e.target.value;
+                  setEmbeddingInfo(newEmbeddingInfo);
+                }}
+              />
+              <Textarea
+                placeholder="Enter text..."
+                value={info.text || ""}
+                onChange={(e) => {
+                  const newEmbeddingInfo = [...embeddingInfo];
+                  newEmbeddingInfo[index].text = e.target.value;
+                  setEmbeddingInfo(newEmbeddingInfo);
+                }}
+              />
+            </div>
+            {/* EMBEDDING INPUT ROW END */}
+          </div>
+        ))}
+        <Button
+          onClick={() =>
+            setEmbeddingInfo([
+              ...embeddingInfo,
+              {
+                instruction: null,
+                text: null,
+                embedding: [],
+              },
+            ])
+          }
+        >
+          Add Embedding
+        </Button>
+      </div>
+
+      <Button onClick={generateEmbeddingsHandler}>Generate Embeddings</Button>
+      <h3>Vector Math</h3>
       <Textarea
-        placeholder="Instruction..."
-        value={instruction}
+        placeholder="Enter math..."
+        value={mathExpression}
         onChange={(e) => {
-          setInstruction(e.target.value);
+          setMathExpression(e.target.value);
         }}
       />
-      <h3>Text</h3>
-      <Textarea
-        placeholder="Text..."
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-        }}
-      />
-      <Button onClick={submitHandler}>Generate Embeddings</Button>
-      <h3>Your embedding:</h3>
-      <p>{embedding}</p>
+      <Button onClick={evaluateHandler}>Calculate</Button>
     </main>
   );
 }
