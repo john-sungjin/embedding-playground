@@ -29,7 +29,7 @@ stub = modal.Stub("embedding-playground")
 
 
 class GenerateEmbeddingsRequest(BaseModel):
-    model_name: Models
+    embed_model_name: Models
     instruction: str | None
     text: str
 
@@ -41,7 +41,7 @@ class GenerateEmbeddingsResponse(BaseModel):
 @stub.function(image=image)
 @modal.web_endpoint(method="POST")
 def generate_embeddings(req: GenerateEmbeddingsRequest):
-    if req.model_name == "hkunlp/instructor-large":
+    if req.embed_model_name == "hkunlp/instructor-large":
         model = INSTRUCTOR("hkunlp/instructor-large")
         embeddings = model.encode([req.instruction or "", req.text])
         return GenerateEmbeddingsResponse(embeddings=embeddings[1].tolist())
