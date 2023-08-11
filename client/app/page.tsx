@@ -1,5 +1,7 @@
 "use client";
 
+import { useGenerateEmbedding } from "./generated/server/serverComponents";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -57,6 +59,16 @@ export default function Home() {
       embedding: null,
     },
   ]);
+
+  // Harshal's api call tester
+  const { isLoading, data } = useGenerateEmbedding({
+    queryParams: {
+      embed_model_name: "hkunlp/instructor-large",
+      instruction: undefined,
+      text: "this is a negative product review",
+    },
+  });
+  console.log(data);
 
   // Edit on change
   const [textTimeoutId, setTextTimeoutId] = useState<number | null>(null);

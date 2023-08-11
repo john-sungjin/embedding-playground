@@ -1,7 +1,9 @@
 import { Toaster } from "@/components/ui/toaster";
+import NoSsr from "@/components/noSsr";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { LayoutInner } from "./layout_inner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,7 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
+        <NoSsr>
+          <LayoutInner>{children}</LayoutInner>
+        </NoSsr>
         <Toaster />
       </body>
     </html>
