@@ -1,5 +1,7 @@
 "use client";
 
+import { useGenerateEmbedding } from "./generated/server/serverComponents";
+
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -88,6 +90,15 @@ export default function Home() {
   }, [textTimeoutId, mathTimeoutId]);
 
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const { data } = useGenerateEmbedding({
+    queryParams: {
+      embed_model_name: "hkunlp/instructor-large",
+      instruction: undefined,
+      text: "this is a negative product review",
+    },
+  });
+  console.log(data);
 
   const textEmbeddingsHandler = async (
     textEmbeddingInfo: TextEmbeddingInfo,

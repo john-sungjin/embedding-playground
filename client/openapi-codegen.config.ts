@@ -9,7 +9,7 @@ export default defineConfig({
       relativePath: "../server/server_openapi.json",
       source: "file",
     },
-    outputDir: "generated/server",
+    outputDir: "app/generated/server",
     to: async (context) => {
       const filenamePrefix = "server";
       const { schemasFiles } = await generateSchemaTypes(context, {

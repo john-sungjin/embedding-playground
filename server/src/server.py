@@ -9,7 +9,7 @@ from pydantic import BaseModel
 app = fastapi.FastAPI()
 
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def redirect_to_docs():
     return fastapi.responses.RedirectResponse("/docs")
 
@@ -24,44 +24,46 @@ INSTRUCTOR_LARGE = "hkunlp/instructor-large"
 GTE_LARGE = "thenlper/gte-large"
 
 
-class EmbeddingRequest(BaseModel):
-    # Instruction is only required for the instructor model.
-    instruction: str | None = None
-
-    text: str
-
-
-class GenerateEmbeddingRequest(BaseModel):
-    embed_model_name: Models
-
-    input: EmbeddingRequest
-
-
 class GenerateEmbeddingResponse(BaseModel):
     length: int
     embedding: list[float]
 
 
-@app.post("/api/generate_embedding", response_model=GenerateEmbeddingResponse)
-def generate_embedding(req: GenerateEmbeddingRequest) -> GenerateEmbeddingResponse:
-    if req.embed_model_name == INSTRUCTOR_LARGE:
+@app.get("/api/generate_embedding", response_model=GenerateEmbeddingResponse)
+def generate_embedding(
+    embed_model_name: Models,
+    text: str,
+    # Instruction is only required for the instructor model.
+    instruction: str | None = None,
+) -> GenerateEmbeddingResponse:
+    if embed_model_name == INSTRUCTOR_LARGE:
         model = INSTRUCTOR(INSTRUCTOR_LARGE)
 
-        assert req.input.instruction is not None
-        sentence = [req.input.instruction, req.input.text]
+        assert instruction is not None
+        sentence = [instruction, text]
         embedding: torch.Tensor = model.encode(
             [sentence],  # type: ignore
             convert_to_numpy=False,
         )[0]
 
-    elif req.embed_model_name == GTE_LARGE:
+    elif embed_model_name == GTE_LARGE:
         model = SentenceTransformer(GTE_LARGE)
 
-        embedding = model.encode([req.input.text], convert_to_numpy=False)[0]
+        embedding = model.encode([text], convert_to_numpy=False)[0]
     else:
-        raise ValueError(f"Model {req.embed_model_name} not supported.")
+        raise ValueError(f"Model {embed_model_name} not supported.")
 
     return GenerateEmbeddingResponse(
         length=len(embedding),
         embedding=embedding.tolist(),
     )
+
+
+def use_route_names_as_operation_ids(app: fastapi.FastAPI) -> None:
+    # See https://fastapi.tiangolo.com/advanced/path-operation-advanced-configuration/#using-the-path-operation-function-name-as-the-operationid
+    for route in app.routes:
+        if isinstance(route, fastapi.routing.APIRoute):
+            route.operation_id = route.name
+
+
+use_route_names_as_operation_ids(app)
