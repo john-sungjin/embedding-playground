@@ -14,7 +14,8 @@ torch = [
 ]
 transformers = "^4.31.0"
 sentence-transformers = "^2.2.2"
-modal-client = "^0.50.3001"
+fastapi = "^0.101.0"
+uvicorn = "^0.23.2"
 
 [[tool.poetry.source]]
 name = "PyPI"
