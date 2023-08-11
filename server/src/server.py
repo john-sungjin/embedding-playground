@@ -19,8 +19,15 @@ def ping():
     return "pong"
 
 
-Models = Literal["hkunlp/instructor-large", "thenlper/gte-large"]
-INSTRUCTOR_LARGE = "hkunlp/instructor-large"
+Models = Literal[
+    "hkunlp/instructor-xl",
+    "hkunlp/instructor-large",
+    "thenlper/gte-large",
+]
+INSTRUCTOR_MODELS = {
+    "hkunlp/instructor-xl",
+    "hkunlp/instructor-large",
+}
 GTE_LARGE = "thenlper/gte-large"
 
 
@@ -36,8 +43,8 @@ def generate_embedding(
     # Instruction is only required for the instructor model.
     instruction: str | None = None,
 ) -> GenerateEmbeddingResponse:
-    if embed_model_name == INSTRUCTOR_LARGE:
-        model = INSTRUCTOR(INSTRUCTOR_LARGE)
+    if embed_model_name in INSTRUCTOR_MODELS:
+        model = INSTRUCTOR(embed_model_name)
 
         assert instruction is not None
         sentence = [instruction, text]

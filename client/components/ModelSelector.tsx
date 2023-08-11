@@ -18,9 +18,13 @@ import { Models } from "@/components/Embeddings";
 
 const models: { value: Models; label: string }[] = [
   { value: "hkunlp/instructor-large", label: "Instructor Large" },
+  { value: "hkunlp/instructor-xl", label: "Instructor XL" },
   { value: "thenlper/gte-large", label: "GTE Large" },
 ];
-export const INSTRUCTION_MODELS = new Set(["hkunlp/instructor-large"]);
+export const INSTRUCTION_MODELS = new Set([
+  "hkunlp/instructor-large",
+  "hkunlp/instructor-xl",
+]);
 
 export const ModelSelector: React.FC<{
   modelValue: Models | null;
