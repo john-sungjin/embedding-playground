@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { action, makeAutoObservable, makeObservable, observable } from "mobx";
 import { EmbeddingInfo } from "@/app/math";
 import {
   GenerateEmbeddingQueryParams,
@@ -23,20 +23,22 @@ interface MathEmbeddingInfo extends EmbeddingInfo {
 }
 
 export class Embeddings {
-  textEmbeddings: TextEmbeddingInfo[] = [
-    {
-      name: TEXT_EMBED_PREFIX + "0",
-      instruction: "",
-      text: "",
-      embedding: null,
-      isOutdated: false,
-      isLoading: false,
-    },
-  ];
-  mathEmbeddings: MathEmbeddingInfo[] = [];
+  textEmbeddings: TextEmbeddingInfo[];
+  mathEmbeddings: MathEmbeddingInfo[];
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
+    this.textEmbeddings = [
+      {
+        name: TEXT_EMBED_PREFIX + "0",
+        instruction: "",
+        text: "",
+        embedding: null,
+        isOutdated: false,
+        isLoading: false,
+      },
+    ];
+    this.mathEmbeddings = [];
   }
 
   createTextEmbedding() {
@@ -129,6 +131,34 @@ export class Embeddings {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  updateTextOrInstruction({
+    index,
+    text,
+    instruction,
+  }: {
+    index: number;
+    text?: string;
+    instruction?: string;
+  }) {
+    const embedding = this.textEmbeddings[index];
+    if (instruction !== undefined) {
+      embedding.instruction = instruction;
+    }
+    if (text !== undefined) {
+      embedding.text = text;
+    }
+  }
+
+  updateExpression({
+    index,
+    expression,
+  }: {
+    index: number;
+    expression: string;
+  }) {
+    this.mathEmbeddings[index].expression = expression;
   }
 }
 

@@ -14,6 +14,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ModelSelector } from "../components/ModelSelector";
 import { observer } from "mobx-react-lite";
 import { embeddings, Models } from "@/components/Embeddings";
+import { SimilarityMatrix } from "@/components/SimilarityMatrix";
 
 const TEXT_EDIT_TIMEOUT = 3000;
 const MATH_EDIT_TIMEOUT = 500;
@@ -46,12 +47,7 @@ const Home = observer(() => {
     text?: string;
     instruction?: string;
   }) {
-    if (instruction !== undefined) {
-      embeddings.textEmbeddings[index].instruction = instruction;
-    }
-    if (text !== undefined) {
-      embeddings.textEmbeddings[index].text = text;
-    }
+    embeddings.updateTextOrInstruction({ index, text, instruction });
     if (textTimeoutId) {
       clearTimeout(textTimeoutId);
     }
@@ -78,7 +74,7 @@ const Home = observer(() => {
   }
 
   function mathEmbeddingsHandler(index: number, expression: string) {
-    embeddings.mathEmbeddings[index].expression = expression;
+    embeddings.updateExpression({ index, expression });
 
     if (mathTimeoutId) {
       clearTimeout(mathTimeoutId);
@@ -223,7 +219,9 @@ const Home = observer(() => {
       </div>
       {/* SIDEBAR END */}
       {/* VIEW START */}
-      <div className="h-full w-full"></div>
+      <div className="h-full w-full">
+        <SimilarityMatrix />
+      </div>
       {/* VIEW END */}
     </main>
   );
