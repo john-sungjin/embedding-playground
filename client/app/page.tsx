@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { generateEmbeddings } from "./config";
 import { evaluate } from "mathjs";
-import { cosineSimilarity } from "./math";
+import { cosineSimilarity, EmbeddingInfo } from "./math";
 import { useToast } from "@/components/ui/use-toast";
 import { ModelSelector } from "./ModelSelector";
 
@@ -21,19 +21,15 @@ const MATH_EMBED_PREFIX = "m";
 const TEXT_EDIT_TIMEOUT = 3000;
 const MATH_EDIT_TIMEOUT = 500;
 
-interface TextEmbeddingInfo {
-  name: string;
+interface TextEmbeddingInfo extends EmbeddingInfo {
   instruction: string;
   text: string;
-  embedding: number[] | null;
   isOutdated: boolean;
   isLoading: boolean;
 }
 
-interface MathEmbeddingInfo {
-  name: string;
+interface MathEmbeddingInfo extends EmbeddingInfo {
   expression: string;
-  embedding: number[] | null;
 }
 
 export default function Home() {
@@ -387,7 +383,7 @@ export default function Home() {
       </div>
       {/* SIDEBAR END */}
       {/* VIEW START */}
-      <div></div>
+      <div className="h-full w-full"></div>
       {/* VIEW END */}
     </main>
   );
