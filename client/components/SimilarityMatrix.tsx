@@ -1,10 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
-import {
-  MathEmbedding,
-  TextEmbedding,
-  embedStore,
-} from "@/components/Embeddings";
+import type { MathEmbedding, TextEmbedding } from "@/components/Embeddings";
 import { cosineSimilarity } from "@/app/math";
 
 function namesToKey(i: string, j: string) {
