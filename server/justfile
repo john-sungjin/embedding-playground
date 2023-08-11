@@ -1,0 +1,10 @@
+
+
+dev:
+    @echo "Starting development server..."
+    uvicorn server:app --reload
+
+openapi:
+    @echo "Generating OpenAPI schema..."
+    poetry run python src/generate_openapi.py
+    
