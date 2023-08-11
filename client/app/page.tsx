@@ -15,7 +15,12 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import {
+  CaretSortIcon,
+  CheckIcon,
+  TrashIcon,
+  PlusIcon,
+} from "@radix-ui/react-icons";
 import { useState } from "react";
 import { generateEmbeddings } from "./config";
 import { evaluate } from "mathjs";
@@ -26,41 +31,61 @@ const models = [
 ];
 
 interface EmbeddingInfo {
-  instruction: string | null;
-  text: string | null;
+  name: string;
+  instruction: string;
+  text: string;
   embedding: number[];
 }
 
 export default function Home() {
   const [open, setOpen] = useState(false);
   const [modelValue, setModelValue] = useState("");
-  const [embeddingInfo, setEmbeddingInfo] = useState<EmbeddingInfo[]>([]);
+  const [embeddingInfo, setEmbeddingInfo] = useState<EmbeddingInfo[]>([
+    {
+      name: "vector0",
+      instruction: "",
+      text: "",
+      embedding: [],
+    },
+  ]);
   const [mathExpression, setMathExpression] = useState<string>("");
 
   const generateEmbeddingsHandler = async () => {
-    for (const info of embeddingInfo) {
-      const response = await generateEmbeddings({
-        embed_model_name: modelValue,
+    const response = await generateEmbeddings({
+      embed_model_name: modelValue,
+      inputs: embeddingInfo.map((info) => ({
         instruction: info.instruction,
-        text: info.text || "",
-      });
-      setEmbeddingInfo([
-        ...embeddingInfo,
-        {
-          instruction: info.instruction,
-          text: info.text,
-          embedding: response.embeddings,
-        },
-      ]);
-    }
+        text: info.text,
+      })),
+    });
+
+    setEmbeddingInfo(
+      embeddingInfo.map((info, index) => ({
+        ...info,
+        embedding: response.embeddings[index],
+      }))
+    );
   };
 
   const evaluateHandler = () => {
-    const scope: Record<string, any> = {
-      v1: [1, 2, 3],
-      v2: [5, 3, 4],
-      cosineSimilarity: cosineSimilarity,
-    };
+    // 1. Add all embeddings to scope
+    const scope: Record<string, any> = embeddingInfo.reduce(
+      (
+        acc: {
+          [key: string]: number[];
+        },
+        info,
+        index
+      ) => {
+        acc[`v${index}`] = info.embedding;
+        return acc;
+      },
+      {}
+    );
+
+    // 2. Add cosine similarity function to scope
+    scope.cosineSimilarity = cosineSimilarity;
+
     try {
       const result = evaluate(mathExpression, scope);
       console.log(result);
@@ -70,10 +95,8 @@ export default function Home() {
   };
 
   return (
-    <main className="border">
-      <h1>Embedding Playground</h1>
-      <p>A place to test embeddings!</p>
-      <p>Try it out by typing in the box below.</p>
+    <main className="border p-4 flex-col space-y-4">
+      <h1 className="font-bold">Embedding Playground</h1>
       {/* MODEL DROPDOWN START */}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -81,7 +104,7 @@ export default function Home() {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-72"
+            className="w-72 justify-between"
           >
             {modelValue
               ? models.find((model) => model.value === modelValue)?.label
@@ -89,7 +112,7 @@ export default function Home() {
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-72">
+        <PopoverContent className="w-72 p-0">
           <Command>
             <CommandInput placeholder="Search models..." />
             <CommandEmpty>No model found.</CommandEmpty>
@@ -120,10 +143,28 @@ export default function Home() {
       </Popover>
       {/* MODEL DROPDOWN END */}
       {/* EMBEDDING INPUT START */}
+      <h3>Active Embeddings</h3>
       <div className="flex flex-col space-y-4">
-        {/* EMBEDDING INPUT ROW START */}
         {embeddingInfo.map((info, index) => (
-          <div key={index} className="flex flex-col space-y-4">
+          <div key={index} className="flex-col space-y-2">
+            {/* HEADER START */}
+            <div className="flex flex-row space-x-2">
+              <h5 className="flex items-center justify-center px-2 h-8 bg-gray-100 w-fit rounded-md font-mono text-gray-600 text-sm">
+                {info.name}
+              </h5>
+              <Button
+                onClick={() => {
+                  const newEmbeddingInfo = [...embeddingInfo];
+                  newEmbeddingInfo.splice(index, 1);
+                  setEmbeddingInfo(newEmbeddingInfo);
+                }}
+                className="flex justify-center items-center w-8 h-8 hover:bg-red-100 border-red-300"
+                variant="outline"
+              >
+                <TrashIcon className="h-4 w-4 shrink-0 text-red-500" />
+              </Button>
+            </div>
+            {/* INPUT ROW START */}
             <div className="flex flex-row space-x-4">
               <Textarea
                 placeholder="Enter instruction..."
@@ -147,20 +188,25 @@ export default function Home() {
             {/* EMBEDDING INPUT ROW END */}
           </div>
         ))}
-        <Button
-          onClick={() =>
-            setEmbeddingInfo([
-              ...embeddingInfo,
-              {
-                instruction: null,
-                text: null,
-                embedding: [],
-              },
-            ])
-          }
-        >
-          Add Embedding
-        </Button>
+        <div className="flex items-center justify-center">
+          <Button
+            onClick={() =>
+              setEmbeddingInfo([
+                ...embeddingInfo,
+                {
+                  name: `vector${embeddingInfo.length}`,
+                  instruction: "",
+                  text: "",
+                  embedding: [],
+                },
+              ])
+            }
+            variant="secondary"
+            className="p-2 h-8 w-8"
+          >
+            <PlusIcon className="h-4 w-4 text-gray-700" />
+          </Button>
+        </div>
       </div>
 
       <Button onClick={generateEmbeddingsHandler}>Generate Embeddings</Button>

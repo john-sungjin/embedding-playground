@@ -10,12 +10,14 @@ export const apiClient = axios.create({
 // Match schemas with embeddings.py
 export interface GenerateEmbeddingsRequest {
   embed_model_name: string;
-  instruction: string | null;
-  text: string;
+  inputs: Array<{
+    instruction: string;
+    text: string;
+  }>;
 }
 
 export interface GenerateEmbeddingsResponse {
-  embeddings: number[];
+  embeddings: Array<Array<number>>;
 }
 
 export const generateEmbeddings = async (

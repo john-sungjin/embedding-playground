@@ -2,6 +2,7 @@
 from typing import Literal
 
 import modal
+import torch
 from InstructorEmbedding import INSTRUCTOR
 from pydantic import BaseModel
 
@@ -28,14 +29,18 @@ stub = modal.Stub("embedding-playground")
 # %%
 
 
-class GenerateEmbeddingsRequest(BaseModel):
-    embed_model_name: Models
-    instruction: str | None
+class Input(BaseModel):
+    instruction: str
     text: str
 
 
+class GenerateEmbeddingsRequest(BaseModel):
+    embed_model_name: Models
+    inputs: list[Input]  # (instruction, text) pairs
+
+
 class GenerateEmbeddingsResponse(BaseModel):
-    embeddings: list[float]
+    embeddings: list[list[float]]
 
 
 @stub.function(image=image)
@@ -43,7 +48,8 @@ class GenerateEmbeddingsResponse(BaseModel):
 def generate_embeddings(req: GenerateEmbeddingsRequest):
     if req.embed_model_name == "hkunlp/instructor-large":
         model = INSTRUCTOR("hkunlp/instructor-large")
-        embeddings = model.encode([req.instruction or "", req.text])
-        return GenerateEmbeddingsResponse(embeddings=embeddings[1].tolist())
+        sentences = [[i.instruction, i.text] for i in req.inputs]
+        embeddings: list[torch.Tensor] = model.encode(sentences, convert_to_numpy=False)
+        return GenerateEmbeddingsResponse(embeddings=[e.tolist() for e in embeddings])
     else:
         raise ValueError("Model not supported.")
