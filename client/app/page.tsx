@@ -1,6 +1,6 @@
 "use client";
 
-import { useGenerateEmbedding } from "./generated/server/serverComponents";
+import { GenerateEmbeddingQueryParams, generateEmbedding } from "./generated/server/serverComponents";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,6 @@ import {
   CheckCircledIcon,
 } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
-import { generateEmbeddings } from "./config";
 import { evaluate } from "mathjs";
 import { cosineSimilarity, EmbeddingInfo } from "./math";
 import { useToast } from "@/components/ui/use-toast";
@@ -36,7 +35,7 @@ interface MathEmbeddingInfo extends EmbeddingInfo {
 
 export default function Home() {
   const { toast } = useToast();
-  const [modelValue, setModelValue] = useState<string | null>(null);
+  const [modelValue, setModelValue] = useState<GenerateEmbeddingQueryParams['embed_model_name'] | null>(null);
 
   const [textEmbeddingInfo, setTextEmbeddingInfo] = useState<
     TextEmbeddingInfo[]
@@ -59,16 +58,6 @@ export default function Home() {
       embedding: null,
     },
   ]);
-
-  // Harshal's api call tester
-  const { isLoading, data } = useGenerateEmbedding({
-    queryParams: {
-      embed_model_name: "hkunlp/instructor-large",
-      instruction: undefined,
-      text: "this is a negative product review",
-    },
-  });
-  console.log(data);
 
   // Edit on change
   const [textTimeoutId, setTextTimeoutId] = useState<number | null>(null);
@@ -135,19 +124,17 @@ export default function Home() {
       return newInfo;
     });
     try {
-      const response = await generateEmbeddings({
-        embed_model_name: modelValue,
-        inputs: [
-          {
+      const response = await generateEmbedding({
+        queryParams: {
+            embed_model_name: modelValue,
             instruction: info.instruction,
             text: info.text,
-          },
-        ],
+        }
       });
 
       setTextEmbeddingInfo((textEmbeddingInfo) => {
         const newInfo = [...textEmbeddingInfo];
-        newInfo[index].embedding = response.embeddings[0];
+        newInfo[index].embedding = response.embedding;
         return newInfo;
       });
     } catch (e) {

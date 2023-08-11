@@ -14,14 +14,18 @@ import {
 import { cn } from "@/lib/utils";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
+import { GenerateEmbeddingQueryParams } from "./generated/server/serverComponents";
+
+export type ModelTypes = GenerateEmbeddingQueryParams["embed_model_name"];
 
 const models = [
   { value: "hkunlp/instructor-large", label: "Instructor Large" },
+  { value: "thenlper/gte-large", label: "GTE Large" },
 ];
 
 export const ModelSelector: React.FC<{
-  modelValue: string | null;
-  setModelValue: (value: string) => void;
+  modelValue: ModelTypes | null;
+  setModelValue: (value: ModelTypes | null) => void;
 }> = ({ modelValue, setModelValue }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -49,8 +53,10 @@ export const ModelSelector: React.FC<{
                 key={model.value}
                 value={model.value}
                 onSelect={(currentValue) => {
+                  // Coerce from string to a stricter type.
+                  const newModelValue = currentValue as (ModelTypes | null);
                   setModelValue(
-                    currentValue === modelValue ? "" : currentValue,
+                    newModelValue === modelValue ? null : newModelValue,
                   );
                   setOpen(false);
                 }}

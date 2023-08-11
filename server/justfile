@@ -2,7 +2,7 @@
 
 dev:
     @echo "Starting development server..."
-    uvicorn server:app --reload
+    poetry run uvicorn server:app --reload
 
 openapi:
     @echo "Generating OpenAPI schema..."
