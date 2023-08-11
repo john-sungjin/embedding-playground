@@ -82,6 +82,10 @@ export default function Home() {
         }))
       );
     } catch (e) {
+      toast({
+        title: "Something went wrong! Check the console for more details.",
+        variant: "destructive",
+      });
       console.log(e);
     }
     setIsGenerating(false);
@@ -97,6 +101,10 @@ export default function Home() {
         info,
         index
       ) => {
+        if (!info.embedding) {
+          // TODO: better error handling
+          return acc;
+        }
         acc[`${VECTOR_PREFIX}${index}`] = info.embedding; // make sure this is not null
         return acc;
       },
