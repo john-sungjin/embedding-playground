@@ -25,9 +25,11 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
-    "eslint": "8.46.0",
+    "eslint": "^8.46.0",
     "eslint-config-next": "13.4.13",
     "mathjs": "^11.9.1",
+    "mobx": "^6.10.0",
+    "mobx-react-lite": "^4.0.3",
     "next": "13.4.13",
     "postcss": "8.4.27",
     "react": "18.2.0",
@@ -40,6 +42,8 @@
   "devDependencies": {
     "@openapi-codegen/cli": "^2.0.0",
     "@openapi-codegen/typescript": "^7.0.0",
+    "@typescript-eslint/parser": "^6.3.0",
+    "eslint-plugin-mobx": "^0.0.9",
     "prettier": "^3.0.1"
   }
 }

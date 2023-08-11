@@ -1,7 +1,5 @@
 "use client";
 
-import { GenerateEmbeddingQueryParams, generateEmbedding } from "./generated/server/serverComponents";
-
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -12,52 +10,17 @@ import {
   CheckCircledIcon,
 } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
-import { evaluate } from "mathjs";
-import { cosineSimilarity, EmbeddingInfo } from "./math";
 import { useToast } from "@/components/ui/use-toast";
-import { ModelSelector } from "./ModelSelector";
+import { ModelSelector } from "../components/ModelSelector";
+import { observer } from "mobx-react-lite";
+import { embeddings, Models } from "@/components/Embeddings";
 
-const TEXT_EMBED_PREFIX = "t";
-const MATH_EMBED_PREFIX = "m";
 const TEXT_EDIT_TIMEOUT = 3000;
 const MATH_EDIT_TIMEOUT = 500;
 
-interface TextEmbeddingInfo extends EmbeddingInfo {
-  instruction: string;
-  text: string;
-  isOutdated: boolean;
-  isLoading: boolean;
-}
-
-interface MathEmbeddingInfo extends EmbeddingInfo {
-  expression: string;
-}
-
-export default function Home() {
+const Home = observer(() => {
   const { toast } = useToast();
-  const [modelValue, setModelValue] = useState<GenerateEmbeddingQueryParams['embed_model_name'] | null>(null);
-
-  const [textEmbeddingInfo, setTextEmbeddingInfo] = useState<
-    TextEmbeddingInfo[]
-  >([
-    {
-      name: TEXT_EMBED_PREFIX + "0",
-      instruction: "",
-      text: "",
-      embedding: null,
-      isOutdated: false,
-      isLoading: false,
-    },
-  ]);
-  const [mathEmbeddingInfo, setMathEmbeddingInfo] = useState<
-    MathEmbeddingInfo[]
-  >([
-    {
-      name: MATH_EMBED_PREFIX + "0",
-      expression: "",
-      embedding: null,
-    },
-  ]);
+  const [modelValue, setModelValue] = useState<Models | null>(null);
 
   // Edit on change
   const [textTimeoutId, setTextTimeoutId] = useState<number | null>(null);
@@ -83,125 +46,48 @@ export default function Home() {
     text?: string;
     instruction?: string;
   }) {
-    const newEmbeddingInfo = [...textEmbeddingInfo];
-    if (text !== undefined) {
-      newEmbeddingInfo[index].text = text;
-    }
     if (instruction !== undefined) {
-      newEmbeddingInfo[index].instruction = instruction;
+      embeddings.textEmbeddings[index].instruction = instruction;
     }
-    newEmbeddingInfo[index].isOutdated = true;
-    setTextEmbeddingInfo(newEmbeddingInfo);
-
+    if (text !== undefined) {
+      embeddings.textEmbeddings[index].text = text;
+    }
     if (textTimeoutId) {
       clearTimeout(textTimeoutId);
     }
     const newTimeoutId = window.setTimeout(async () => {
-      await updateTextEmbedding(index);
+      if (!modelValue) {
+        toast({
+          title: "Please select an embedding model.",
+          variant: "destructive",
+        });
+        return;
+      }
+      try {
+        await embeddings.updateTextEmbedding(index, modelValue);
+      } catch (e) {
+        toast({
+          title: "Something went wrong! Check the console for more details.",
+          variant: "destructive",
+        });
+        console.error(e);
+      }
     }, TEXT_EDIT_TIMEOUT);
 
     setTextTimeoutId(newTimeoutId);
   }
 
-  async function updateTextEmbedding(index: number) {
-    // conditional logic to make sure fields are filled
-    if (!modelValue) {
-      toast({
-        title: "Please select an embedding model.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const info = textEmbeddingInfo[index];
-    if (!info.instruction || !info.text) {
-      return;
-    }
-
-    setTextEmbeddingInfo((textEmbeddingInfo) => {
-      const newInfo = [...textEmbeddingInfo];
-      newInfo[index].isLoading = true;
-      return newInfo;
-    });
-    try {
-      const response = await generateEmbedding({
-        queryParams: {
-            embed_model_name: modelValue,
-            instruction: info.instruction,
-            text: info.text,
-        }
-      });
-
-      setTextEmbeddingInfo((textEmbeddingInfo) => {
-        const newInfo = [...textEmbeddingInfo];
-        newInfo[index].embedding = response.embedding;
-        return newInfo;
-      });
-    } catch (e) {
-      toast({
-        title: "Something went wrong! Check the console for more details.",
-        variant: "destructive",
-      });
-      console.log(e);
-    }
-
-    setTextEmbeddingInfo((textEmbeddingInfo) => {
-      const newInfo = [...textEmbeddingInfo];
-      newInfo[index].isLoading = false;
-      newInfo[index].isOutdated = false;
-      return newInfo;
-    });
-  }
-
   function mathEmbeddingsHandler(index: number, expression: string) {
-    const newEmbeddingInfo = [...mathEmbeddingInfo];
-    newEmbeddingInfo[index].expression = expression;
-    setMathEmbeddingInfo(newEmbeddingInfo);
+    embeddings.mathEmbeddings[index].expression = expression;
 
     if (mathTimeoutId) {
       clearTimeout(mathTimeoutId);
     }
     const newTimeoutId = window.setTimeout(async () => {
-      await updateMathEmbedding(index);
+      embeddings.updateMathEmbedding(index);
     }, MATH_EDIT_TIMEOUT);
 
     setMathTimeoutId(newTimeoutId);
-  }
-
-  function updateMathEmbedding(index: number) {
-    const expression = mathEmbeddingInfo[index].expression;
-    // 1. Add all embeddings to scope
-    const scope: Record<string, any> = textEmbeddingInfo.reduce(
-      (
-        acc: {
-          [key: string]: number[];
-        },
-        info,
-        index,
-      ) => {
-        if (!info.embedding) {
-          // TODO: better error handling
-          return acc;
-        }
-        acc[`${TEXT_EMBED_PREFIX}${index}`] = info.embedding; // make sure this is not null
-        return acc;
-      },
-      {},
-    );
-
-    // 2. Add cosine similarity function to scope
-    scope.cosineSimilarity = cosineSimilarity;
-
-    console.log(scope);
-
-    try {
-      const result = evaluate(expression, scope);
-      const newInfo = [...mathEmbeddingInfo];
-      newInfo[index].embedding = result;
-      setMathEmbeddingInfo([...newInfo]);
-    } catch (e) {
-      console.log(e);
-    }
   }
 
   return (
@@ -213,7 +99,7 @@ export default function Home() {
         <h3>Text Embeddings</h3>
         <ModelSelector modelValue={modelValue} setModelValue={setModelValue} />
         <div className="flex flex-col space-y-4">
-          {textEmbeddingInfo.map((info, index) => (
+          {embeddings.textEmbeddings.map((info, index) => (
             <div key={index} className="flex-col space-y-2">
               {/* HEADER START */}
               <div className="flex w-full">
@@ -240,9 +126,7 @@ export default function Home() {
                 </div>
                 <Button
                   onClick={() => {
-                    const newEmbeddingInfo = [...textEmbeddingInfo];
-                    newEmbeddingInfo.splice(index, 1);
-                    setTextEmbeddingInfo(newEmbeddingInfo);
+                    embeddings.deleteTextEmbedding(index);
                   }}
                   className="ml-auto flex h-8 w-8 items-center justify-center border-red-300 hover:bg-red-100"
                   variant="outline"
@@ -279,29 +163,7 @@ export default function Home() {
           ))}
           <div className="flex items-center justify-center">
             <Button
-              onClick={() => {
-                // check if name already exists
-                // TODO: make this better
-                let newIndex = textEmbeddingInfo.length;
-                while (
-                  textEmbeddingInfo.find(
-                    (info) => info.name === `${TEXT_EMBED_PREFIX}${newIndex}`,
-                  )
-                ) {
-                  newIndex += 1;
-                }
-                setTextEmbeddingInfo([
-                  ...textEmbeddingInfo,
-                  {
-                    name: `${TEXT_EMBED_PREFIX}${newIndex}`,
-                    instruction: "",
-                    text: "",
-                    embedding: null,
-                    isOutdated: false,
-                    isLoading: false,
-                  },
-                ]);
-              }}
+              onClick={embeddings.createTextEmbedding}
               variant="secondary"
               className="h-8 w-8 p-2"
             >
@@ -313,7 +175,7 @@ export default function Home() {
         {/* MATH EMBEDDINGS START */}
         <h3>Math Embeddings</h3>
         <div className="flex flex-col space-y-4">
-          {mathEmbeddingInfo.map((info, index) => (
+          {embeddings.mathEmbeddings.map((info, index) => (
             <div key={index} className="flex-col space-y-2">
               {/* HEADER START */}
               <div className="flex flex-row">
@@ -325,9 +187,7 @@ export default function Home() {
                 </h5>
                 <Button
                   onClick={() => {
-                    const newEmbeddingInfo = [...textEmbeddingInfo];
-                    newEmbeddingInfo.splice(index, 1);
-                    setTextEmbeddingInfo(newEmbeddingInfo);
+                    embeddings.deleteMathEmbedding(index);
                   }}
                   className="ml-auto flex h-8 w-8 items-center justify-center border-red-300 hover:bg-red-100"
                   variant="outline"
@@ -351,26 +211,7 @@ export default function Home() {
           ))}
           <div className="flex items-center justify-center">
             <Button
-              onClick={() => {
-                // check if name already exists
-                // TODO: make this better
-                let newIndex = mathEmbeddingInfo.length;
-                while (
-                  mathEmbeddingInfo.find(
-                    (info) => info.name === `${MATH_EMBED_PREFIX}${newIndex}`,
-                  )
-                ) {
-                  newIndex += 1;
-                }
-                setMathEmbeddingInfo([
-                  ...mathEmbeddingInfo,
-                  {
-                    name: `${MATH_EMBED_PREFIX}${newIndex}`,
-                    expression: "",
-                    embedding: null,
-                  },
-                ]);
-              }}
+              onClick={embeddings.createMathEmbedding}
               variant="secondary"
               className="h-8 w-8 p-2"
             >
@@ -386,4 +227,6 @@ export default function Home() {
       {/* VIEW END */}
     </main>
   );
-}
+});
+
+export default Home;

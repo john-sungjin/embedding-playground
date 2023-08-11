@@ -14,9 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
-import { GenerateEmbeddingQueryParams } from "./generated/server/serverComponents";
-
-export type ModelTypes = GenerateEmbeddingQueryParams["embed_model_name"];
+import { Models } from "@/components/Embeddings";
 
 const models = [
   { value: "hkunlp/instructor-large", label: "Instructor Large" },
@@ -24,8 +22,8 @@ const models = [
 ];
 
 export const ModelSelector: React.FC<{
-  modelValue: ModelTypes | null;
-  setModelValue: (value: ModelTypes | null) => void;
+  modelValue: Models | null;
+  setModelValue: (value: Models | null) => void;
 }> = ({ modelValue, setModelValue }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -54,7 +52,7 @@ export const ModelSelector: React.FC<{
                 value={model.value}
                 onSelect={(currentValue) => {
                   // Coerce from string to a stricter type.
-                  const newModelValue = currentValue as (ModelTypes | null);
+                  const newModelValue = currentValue as Models | null;
                   setModelValue(
                     newModelValue === modelValue ? null : newModelValue,
                   );

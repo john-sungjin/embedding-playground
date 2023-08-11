@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
-import NoSsr from "@/components/noSsr";
+import NoSsr from "@/components/NoSsr";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
