@@ -11,19 +11,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import {
-  CaretSortIcon,
-  CheckIcon,
-  TrashIcon,
-  PlusIcon,
-} from "@radix-ui/react-icons";
-import { ChangeEvent, useEffect, useState } from "react";
-import { generateEmbeddings } from "./config";
-import math, { evaluate } from "mathjs";
-import { cosineSimilarity } from "./math";
-import { useToast } from "@/components/ui/use-toast";
+import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import { useState } from "react";
 
 const models = [
   { value: "hkunlp/instructor-large", label: "Instructor Large" },
