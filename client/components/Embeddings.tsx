@@ -10,6 +10,7 @@ import {
   GenerateEmbeddingQueryParams,
   generateEmbedding,
 } from "@/app/generated/server/serverComponents";
+import { useGenerateEmbedding } from "@/app/generated/server/serverQueryComponents";
 import { evaluate } from "mathjs";
 
 const TEXT_EMBED_PREFIX = "t";
@@ -18,7 +19,7 @@ const MATH_EMBED_PREFIX = "m";
 export type Models = GenerateEmbeddingQueryParams["embed_model_name"];
 
 export interface TextEmbedding {
-  instruction: string;  // only used by instructor models
+  instruction: string; // only used by instructor models
   text: string;
   isOutdated: boolean;
   isLoading: boolean;
