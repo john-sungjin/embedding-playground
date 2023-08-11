@@ -29,6 +29,8 @@ import { useToast } from "@/components/ui/use-toast";
 
 const TEXT_EMBED_PREFIX = "t";
 const MATH_EMBED_PREFIX = "m";
+const TEXT_EDIT_TIMEOUT = 3000;
+const MATH_EDIT_TIMEOUT = 500;
 
 const models = [
   { value: "hkunlp/instructor-large", label: "Instructor Large" },
@@ -87,15 +89,12 @@ export default function Home() {
     };
   }, [textTimeoutId, mathTimeoutId]);
 
-  const [isGenerating, setIsGenerating] = useState(false);
+  // Indicates which embeddings are being generated
+  const [loadingTextEmbeddings, setLoadingTextEmbeddings] = useState<
+    Array<number>
+  >([]);
 
-  const textEmbeddingsHandler = async (
-    textEmbeddingInfo: TextEmbeddingInfo,
-  ) => {
-    if (textTimeoutId) {
-      clearTimeout(textTimeoutId);
-    }
-
+  const textEmbeddingsHandler = async (index: number) => {
     // conditional logic to make sure fields are filled
     if (!modelValue) {
       toast({
@@ -105,22 +104,31 @@ export default function Home() {
       return;
     }
 
-    setIsGenerating(true);
+    const info = textEmbeddingInfo[index];
+    if (!info.instruction || !info.text) {
+      return;
+    }
+
+    setLoadingTextEmbeddings((loadingTextEmbeddings) => [
+      ...loadingTextEmbeddings,
+      index,
+    ]);
     try {
       const response = await generateEmbeddings({
         embed_model_name: modelValue,
-        inputs: textEmbeddingInfo.map((info) => ({
-          instruction: info.instruction,
-          text: info.text,
-        })),
+        inputs: [
+          {
+            instruction: info.instruction,
+            text: info.text,
+          },
+        ],
       });
 
-      setTextEmbeddingInfo(
-        textEmbeddingInfo.map((info, index) => ({
-          ...info,
-          embedding: response.embeddings[index],
-        })),
-      );
+      setTextEmbeddingInfo((textEmbeddingInfo) => {
+        const newInfo = [...textEmbeddingInfo];
+        newInfo[index].embedding = response.embeddings[0];
+        return newInfo;
+      });
     } catch (e) {
       toast({
         title: "Something went wrong! Check the console for more details.",
@@ -128,10 +136,13 @@ export default function Home() {
       });
       console.log(e);
     }
-    setIsGenerating(false);
+    setLoadingTextEmbeddings((loadingTextEmbeddings) =>
+      loadingTextEmbeddings.filter((i) => i !== index),
+    );
   };
 
-  const evaluateHandler = (expression: string) => {
+  const mathEmbeddingsHandler = (index: number) => {
+    const expression = mathEmbeddingInfo[index].expression;
     // 1. Add all embeddings to scope
     const scope: Record<string, any> = textEmbeddingInfo.reduce(
       (
@@ -158,7 +169,9 @@ export default function Home() {
 
     try {
       const result = evaluate(expression, scope);
-      console.log(result);
+      const newInfo = [...mathEmbeddingInfo];
+      newInfo[index].embedding = result;
+      setMathEmbeddingInfo([...newInfo]);
     } catch (e) {
       console.log(e);
     }
@@ -169,6 +182,8 @@ export default function Home() {
       {/* SIDEBAR START */}
       <div className="flex h-full w-1/3 flex-col space-y-4 border p-4">
         <h1 className="font-bold">Embedding Playground</h1>
+        {/* TEXT EMBEDDINGS START */}
+        <h3>Text Embeddings</h3>
         {/* MODEL DROPDOWN START */}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -216,8 +231,6 @@ export default function Home() {
           </PopoverContent>
         </Popover>
         {/* MODEL DROPDOWN END */}
-        {/* TEXT EMBEDDINGS START */}
-        <h3>Text Embeddings</h3>
         <div className="flex flex-col space-y-4">
           {textEmbeddingInfo.map((info, index) => (
             <div key={index} className="flex-col space-y-2">
@@ -234,6 +247,7 @@ export default function Home() {
                       ", ...]"
                     : "null"}
                 </h5>
+                {loadingTextEmbeddings.includes(index) && <h5>Loading</h5>}
                 <Button
                   onClick={() => {
                     const newEmbeddingInfo = [...textEmbeddingInfo];
@@ -252,7 +266,20 @@ export default function Home() {
                 <Textarea
                   placeholder="Enter instruction..."
                   value={info.instruction}
-                  onChange={(e) => {}}
+                  onChange={(e) => {
+                    const newEmbeddingInfo = [...textEmbeddingInfo];
+                    newEmbeddingInfo[index].instruction = e.target.value;
+                    setTextEmbeddingInfo(newEmbeddingInfo);
+
+                    if (textTimeoutId) {
+                      clearTimeout(textTimeoutId);
+                    }
+                    const newTimeoutId = window.setTimeout(async () => {
+                      await textEmbeddingsHandler(index);
+                    }, TEXT_EDIT_TIMEOUT);
+
+                    setTextTimeoutId(newTimeoutId);
+                  }}
                 />
                 <Textarea
                   placeholder="Enter text..."
@@ -262,7 +289,14 @@ export default function Home() {
                     newEmbeddingInfo[index].text = e.target.value;
                     setTextEmbeddingInfo(newEmbeddingInfo);
 
-                    textEmbeddingsHandler();
+                    if (textTimeoutId) {
+                      clearTimeout(textTimeoutId);
+                    }
+                    const newTimeoutId = window.setTimeout(async () => {
+                      await textEmbeddingsHandler(index);
+                    }, TEXT_EDIT_TIMEOUT);
+
+                    setTextTimeoutId(newTimeoutId);
                   }}
                 />
               </div>
@@ -317,6 +351,7 @@ export default function Home() {
                       ", ...]"
                     : "null"}
                 </h5>
+                <h3></h3>
                 <Button
                   onClick={() => {
                     const newEmbeddingInfo = [...textEmbeddingInfo];
@@ -330,19 +365,28 @@ export default function Home() {
                 </Button>
               </div>
               {/* HEADER END */}
-              {/* TEXT EMBEDDING INPUT START */}
+              {/* MATH EMBEDDING INPUT START */}
               <div className="flex flex-row space-x-4">
                 <Textarea
                   placeholder="Enter expression..."
                   value={info.expression}
                   onChange={(e) => {
-                    const newEmbeddingInfo = [...textEmbeddingInfo];
-                    newEmbeddingInfo[index].instruction = e.target.value;
-                    setTextEmbeddingInfo(newEmbeddingInfo);
+                    const newEmbeddingInfo = [...mathEmbeddingInfo];
+                    newEmbeddingInfo[index].expression = e.target.value;
+                    setMathEmbeddingInfo(newEmbeddingInfo);
+
+                    if (mathTimeoutId) {
+                      clearTimeout(mathTimeoutId);
+                    }
+                    const newTimeoutId = window.setTimeout(async () => {
+                      await mathEmbeddingsHandler(index);
+                    }, MATH_EDIT_TIMEOUT);
+
+                    setMathTimeoutId(newTimeoutId);
                   }}
                 />
               </div>
-              {/* TEXT EMBEDDING INPUT END */}
+              {/* MATH EMBEDDING INPUT END */}
             </div>
           ))}
           <div className="flex items-center justify-center">
@@ -360,7 +404,7 @@ export default function Home() {
                 setMathEmbeddingInfo([
                   ...mathEmbeddingInfo,
                   {
-                    name: `${TEXT_EMBED_PREFIX}${newIndex}`,
+                    name: `${MATH_EMBED_PREFIX}${newIndex}`,
                     expression: "",
                     embedding: null,
                   },
