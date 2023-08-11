@@ -25,6 +25,9 @@ import { useState } from "react";
 import { generateEmbeddings } from "./config";
 import { evaluate } from "mathjs";
 import { cosineSimilarity } from "./math";
+import { useToast } from "@/components/ui/use-toast";
+
+const VECTOR_PREFIX = "v";
 
 const models = [
   { value: "hkunlp/instructor-large", label: "Instructor Large" },
@@ -34,37 +37,54 @@ interface EmbeddingInfo {
   name: string;
   instruction: string;
   text: string;
-  embedding: number[];
+  embedding: number[] | null;
 }
 
 export default function Home() {
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [modelValue, setModelValue] = useState("");
+  const [modelValue, setModelValue] = useState<string | null>(null);
   const [embeddingInfo, setEmbeddingInfo] = useState<EmbeddingInfo[]>([
     {
-      name: "vector0",
+      name: "v0",
       instruction: "",
       text: "",
-      embedding: [],
+      embedding: null,
     },
   ]);
   const [mathExpression, setMathExpression] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const generateEmbeddingsHandler = async () => {
-    const response = await generateEmbeddings({
-      embed_model_name: modelValue,
-      inputs: embeddingInfo.map((info) => ({
-        instruction: info.instruction,
-        text: info.text,
-      })),
-    });
+    // conditional logic to make sure fields are filled
+    if (!modelValue) {
+      toast({
+        title: "Please select an embedding model.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setEmbeddingInfo(
-      embeddingInfo.map((info, index) => ({
-        ...info,
-        embedding: response.embeddings[index],
-      }))
-    );
+    setIsGenerating(true);
+    try {
+      const response = await generateEmbeddings({
+        embed_model_name: modelValue,
+        inputs: embeddingInfo.map((info) => ({
+          instruction: info.instruction,
+          text: info.text,
+        })),
+      });
+
+      setEmbeddingInfo(
+        embeddingInfo.map((info, index) => ({
+          ...info,
+          embedding: response.embeddings[index],
+        }))
+      );
+    } catch (e) {
+      console.log(e);
+    }
+    setIsGenerating(false);
   };
 
   const evaluateHandler = () => {
@@ -77,7 +97,7 @@ export default function Home() {
         info,
         index
       ) => {
-        acc[`v${index}`] = info.embedding;
+        acc[`${VECTOR_PREFIX}${index}`] = info.embedding; // make sure this is not null
         return acc;
       },
       {}
@@ -85,6 +105,8 @@ export default function Home() {
 
     // 2. Add cosine similarity function to scope
     scope.cosineSimilarity = cosineSimilarity;
+
+    console.log(scope);
 
     try {
       const result = evaluate(mathExpression, scope);
@@ -150,7 +172,15 @@ export default function Home() {
             {/* HEADER START */}
             <div className="flex flex-row space-x-2">
               <h5 className="flex items-center justify-center px-2 h-8 bg-gray-100 w-fit rounded-md font-mono text-gray-600 text-sm">
-                {info.name}
+                {info.name} ={" "}
+                {info.embedding
+                  ? "[" +
+                    info.embedding
+                      .slice(0, 5)
+                      .map((e) => e.toFixed(5))
+                      .join(", ") +
+                    ", ...]"
+                  : "null"}
               </h5>
               <Button
                 onClick={() => {
@@ -190,17 +220,26 @@ export default function Home() {
         ))}
         <div className="flex items-center justify-center">
           <Button
-            onClick={() =>
+            onClick={() => {
+              // check if name already exists
+              let newIndex = embeddingInfo.length;
+              while (
+                embeddingInfo.find(
+                  (info) => info.name === `${VECTOR_PREFIX}${newIndex}`
+                )
+              ) {
+                newIndex += 1;
+              }
               setEmbeddingInfo([
                 ...embeddingInfo,
                 {
-                  name: `vector${embeddingInfo.length}`,
+                  name: `${VECTOR_PREFIX}${newIndex}`,
                   instruction: "",
                   text: "",
-                  embedding: [],
+                  embedding: null,
                 },
-              ])
-            }
+              ]);
+            }}
             variant="secondary"
             className="p-2 h-8 w-8"
           >
@@ -209,7 +248,9 @@ export default function Home() {
         </div>
       </div>
 
-      <Button onClick={generateEmbeddingsHandler}>Generate Embeddings</Button>
+      <Button onClick={generateEmbeddingsHandler}>
+        {isGenerating ? "Loading..." : "Generate Embeddings"}
+      </Button>
       <h3>Vector Math</h3>
       <Textarea
         placeholder="Enter math..."
