@@ -18,7 +18,7 @@ const MATH_EMBED_PREFIX = "m";
 export type Models = GenerateEmbeddingQueryParams["embed_model_name"];
 
 export interface TextEmbedding {
-  instruction: string;
+  instruction: string;  // only used by instructor models
   text: string;
   isOutdated: boolean;
   isLoading: boolean;

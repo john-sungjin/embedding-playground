@@ -16,10 +16,11 @@ import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import { Models } from "@/components/Embeddings";
 
-const models = [
+const models: { value: Models; label: string }[] = [
   { value: "hkunlp/instructor-large", label: "Instructor Large" },
   { value: "thenlper/gte-large", label: "GTE Large" },
 ];
+export const INSTRUCTION_MODELS = new Set(["hkunlp/instructor-large"]);
 
 export const ModelSelector: React.FC<{
   modelValue: Models | null;

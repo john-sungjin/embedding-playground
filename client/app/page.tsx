@@ -11,7 +11,7 @@ import {
 } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { ModelSelector } from "../components/ModelSelector";
+import { INSTRUCTION_MODELS, ModelSelector } from "../components/ModelSelector";
 import { observer } from "mobx-react-lite";
 import {
   embedStore,
@@ -156,16 +156,18 @@ const Home = observer(() => {
                 {/* HEADER END */}
                 {/* TEXT EMBEDDING INPUT START */}
                 <div className="flex flex-row space-x-4">
-                  <Textarea
-                    placeholder="Enter instruction..."
-                    value={embedding.instruction}
-                    onChange={(e) => {
-                      textEmbeddingsHandler({
-                        name,
-                        instruction: e.target.value,
-                      });
-                    }}
-                  />
+                  {INSTRUCTION_MODELS.has(modelValue ?? "") && (
+                    <Textarea
+                      placeholder="Enter instruction..."
+                      value={embedding.instruction}
+                      onChange={(e) => {
+                        textEmbeddingsHandler({
+                          name,
+                          instruction: e.target.value,
+                        });
+                      }}
+                    />
+                  )}
                   <Textarea
                     placeholder="Enter text..."
                     value={embedding.text}
