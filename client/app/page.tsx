@@ -1,29 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import {
-  CaretSortIcon,
-  CheckIcon,
   TrashIcon,
   PlusIcon,
+  SymbolIcon,
+  ExclamationTriangleIcon,
+  CheckCircledIcon,
 } from "@radix-ui/react-icons";
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { generateEmbeddings } from "./config";
-import math, { evaluate } from "mathjs";
+import { evaluate } from "mathjs";
 import { cosineSimilarity } from "./math";
 import { useToast } from "@/components/ui/use-toast";
 import { ModelSelector } from "./ModelSelector";
@@ -38,7 +26,7 @@ interface TextEmbeddingInfo {
   instruction: string;
   text: string;
   embedding: number[] | null;
-
+  isOutdated: boolean;
   isLoading: boolean;
 }
 
@@ -60,6 +48,7 @@ export default function Home() {
       instruction: "",
       text: "",
       embedding: null,
+      isOutdated: false,
       isLoading: false,
     },
   ]);
@@ -104,6 +93,7 @@ export default function Home() {
     if (instruction !== undefined) {
       newEmbeddingInfo[index].instruction = instruction;
     }
+    newEmbeddingInfo[index].isOutdated = true;
     setTextEmbeddingInfo(newEmbeddingInfo);
 
     if (textTimeoutId) {
@@ -163,6 +153,7 @@ export default function Home() {
     setTextEmbeddingInfo((textEmbeddingInfo) => {
       const newInfo = [...textEmbeddingInfo];
       newInfo[index].isLoading = false;
+      newInfo[index].isOutdated = false;
       return newInfo;
     });
   }
@@ -230,26 +221,35 @@ export default function Home() {
           {textEmbeddingInfo.map((info, index) => (
             <div key={index} className="flex-col space-y-2">
               {/* HEADER START */}
-              <div className="flex flex-row space-x-2">
-                <h5 className="flex h-8 w-fit items-center justify-center rounded-md bg-gray-100 px-2 font-mono text-sm text-gray-600">
-                  {info.name} ={" "}
-                  {info.embedding
-                    ? "[" +
-                      info.embedding
-                        .slice(0, 5)
-                        .map((e) => e.toFixed(5))
-                        .join(", ") +
-                      ", ...]"
-                    : "null"}
-                </h5>
-                {info.isLoading ? <h5>Loading</h5> : null}
+              <div className="flex w-full">
+                <div className="flex items-center space-x-2">
+                  <h5 className="flex h-8 w-36 items-center truncate rounded-md bg-gray-100 px-2 font-mono text-sm text-gray-600">
+                    {info.name} ={" "}
+                    {info.embedding
+                      ? info.embedding.map((e) => e.toFixed(5)).join(", ")
+                      : "null"}
+                  </h5>
+                  {info.isLoading ? (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-100">
+                      <SymbolIcon className="h-4 w-4 animate-spin text-blue-700" />
+                    </div>
+                  ) : info.isOutdated || info.embedding === null ? (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-yellow-100">
+                      <ExclamationTriangleIcon className="h-4 w-4 text-yellow-700" />
+                    </div>
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-green-100">
+                      <CheckCircledIcon className="h-4 w-4 text-green-700" />
+                    </div>
+                  )}
+                </div>
                 <Button
                   onClick={() => {
                     const newEmbeddingInfo = [...textEmbeddingInfo];
                     newEmbeddingInfo.splice(index, 1);
                     setTextEmbeddingInfo(newEmbeddingInfo);
                   }}
-                  className="flex h-8 w-8 items-center justify-center border-red-300 hover:bg-red-100"
+                  className="ml-auto flex h-8 w-8 items-center justify-center border-red-300 hover:bg-red-100"
                   variant="outline"
                 >
                   <TrashIcon className="h-4 w-4 shrink-0 text-red-500" />
@@ -302,6 +302,7 @@ export default function Home() {
                     instruction: "",
                     text: "",
                     embedding: null,
+                    isOutdated: false,
                     isLoading: false,
                   },
                 ]);
@@ -320,26 +321,20 @@ export default function Home() {
           {mathEmbeddingInfo.map((info, index) => (
             <div key={index} className="flex-col space-y-2">
               {/* HEADER START */}
-              <div className="flex flex-row space-x-2">
-                <h5 className="flex h-8 w-fit items-center justify-center rounded-md bg-gray-100 px-2 font-mono text-sm text-gray-600">
+              <div className="flex flex-row">
+                <h5 className="flex h-8 w-36 items-center truncate rounded-md bg-gray-100 px-2 font-mono text-sm text-gray-600">
                   {info.name} ={" "}
                   {info.embedding
-                    ? "[" +
-                      info.embedding
-                        .slice(0, 5)
-                        .map((e) => e.toFixed(5))
-                        .join(", ") +
-                      ", ...]"
+                    ? info.embedding.map((e) => e.toFixed(5)).join(", ")
                     : "null"}
                 </h5>
-                <h3></h3>
                 <Button
                   onClick={() => {
                     const newEmbeddingInfo = [...textEmbeddingInfo];
                     newEmbeddingInfo.splice(index, 1);
                     setTextEmbeddingInfo(newEmbeddingInfo);
                   }}
-                  className="flex h-8 w-8 items-center justify-center border-red-300 hover:bg-red-100"
+                  className="ml-auto flex h-8 w-8 items-center justify-center border-red-300 hover:bg-red-100"
                   variant="outline"
                 >
                   <TrashIcon className="h-4 w-4 shrink-0 text-red-500" />
