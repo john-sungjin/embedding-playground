@@ -90,7 +90,22 @@ export default function Home() {
     Array<number>
   >([]);
 
-  const textEmbeddingsHandler = async (index: number) => {
+  function textEmbeddingsHandler(index: number, text: string) {
+    const newEmbeddingInfo = [...textEmbeddingInfo];
+    newEmbeddingInfo[index].text = text;
+    setTextEmbeddingInfo(newEmbeddingInfo);
+
+    if (textTimeoutId) {
+      clearTimeout(textTimeoutId);
+    }
+    const newTimeoutId = window.setTimeout(async () => {
+      await updateTextEmbedding(index);
+    }, TEXT_EDIT_TIMEOUT);
+
+    setTextTimeoutId(newTimeoutId);
+  }
+
+  async function updateTextEmbedding(index: number) {
     // conditional logic to make sure fields are filled
     if (!modelValue) {
       toast({
@@ -135,9 +150,24 @@ export default function Home() {
     setLoadingTextEmbeddings((loadingTextEmbeddings) =>
       loadingTextEmbeddings.filter((i) => i !== index),
     );
-  };
+  }
 
-  const mathEmbeddingsHandler = (index: number) => {
+  function mathEmbeddingsHandler(index: number, expression: string) {
+    const newEmbeddingInfo = [...mathEmbeddingInfo];
+    newEmbeddingInfo[index].expression = expression;
+    setMathEmbeddingInfo(newEmbeddingInfo);
+
+    if (mathTimeoutId) {
+      clearTimeout(mathTimeoutId);
+    }
+    const newTimeoutId = window.setTimeout(async () => {
+      await updateMathEmbedding(index);
+    }, MATH_EDIT_TIMEOUT);
+
+    setMathTimeoutId(newTimeoutId);
+  }
+
+  function updateMathEmbedding(index: number) {
     const expression = mathEmbeddingInfo[index].expression;
     // 1. Add all embeddings to scope
     const scope: Record<string, any> = textEmbeddingInfo.reduce(
@@ -171,7 +201,7 @@ export default function Home() {
     } catch (e) {
       console.log(e);
     }
-  };
+  }
 
   return (
     <main className="flex h-screen">
@@ -217,36 +247,14 @@ export default function Home() {
                   placeholder="Enter instruction..."
                   value={info.instruction}
                   onChange={(e) => {
-                    const newEmbeddingInfo = [...textEmbeddingInfo];
-                    newEmbeddingInfo[index].instruction = e.target.value;
-                    setTextEmbeddingInfo(newEmbeddingInfo);
-
-                    if (textTimeoutId) {
-                      clearTimeout(textTimeoutId);
-                    }
-                    const newTimeoutId = window.setTimeout(async () => {
-                      await textEmbeddingsHandler(index);
-                    }, TEXT_EDIT_TIMEOUT);
-
-                    setTextTimeoutId(newTimeoutId);
+                    textEmbeddingsHandler(index, e.target.value);
                   }}
                 />
                 <Textarea
                   placeholder="Enter text..."
                   value={info.text}
                   onChange={(e) => {
-                    const newEmbeddingInfo = [...textEmbeddingInfo];
-                    newEmbeddingInfo[index].text = e.target.value;
-                    setTextEmbeddingInfo(newEmbeddingInfo);
-
-                    if (textTimeoutId) {
-                      clearTimeout(textTimeoutId);
-                    }
-                    const newTimeoutId = window.setTimeout(async () => {
-                      await textEmbeddingsHandler(index);
-                    }, TEXT_EDIT_TIMEOUT);
-
-                    setTextTimeoutId(newTimeoutId);
+                    textEmbeddingsHandler(index, e.target.value);
                   }}
                 />
               </div>
@@ -257,6 +265,7 @@ export default function Home() {
             <Button
               onClick={() => {
                 // check if name already exists
+                // TODO: make this better
                 let newIndex = textEmbeddingInfo.length;
                 while (
                   textEmbeddingInfo.find(
@@ -321,18 +330,7 @@ export default function Home() {
                   placeholder="Enter expression..."
                   value={info.expression}
                   onChange={(e) => {
-                    const newEmbeddingInfo = [...mathEmbeddingInfo];
-                    newEmbeddingInfo[index].expression = e.target.value;
-                    setMathEmbeddingInfo(newEmbeddingInfo);
-
-                    if (mathTimeoutId) {
-                      clearTimeout(mathTimeoutId);
-                    }
-                    const newTimeoutId = window.setTimeout(async () => {
-                      await mathEmbeddingsHandler(index);
-                    }, MATH_EDIT_TIMEOUT);
-
-                    setMathTimeoutId(newTimeoutId);
+                    mathEmbeddingsHandler(index, e.target.value);
                   }}
                 />
               </div>
@@ -343,6 +341,7 @@ export default function Home() {
             <Button
               onClick={() => {
                 // check if name already exists
+                // TODO: make this better
                 let newIndex = mathEmbeddingInfo.length;
                 while (
                   mathEmbeddingInfo.find(
