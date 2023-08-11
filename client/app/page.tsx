@@ -38,6 +38,8 @@ interface TextEmbeddingInfo {
   instruction: string;
   text: string;
   embedding: number[] | null;
+
+  isLoading: boolean;
 }
 
 interface MathEmbeddingInfo {
@@ -58,6 +60,7 @@ export default function Home() {
       instruction: "",
       text: "",
       embedding: null,
+      isLoading: false,
     },
   ]);
   const [mathEmbeddingInfo, setMathEmbeddingInfo] = useState<
@@ -85,14 +88,22 @@ export default function Home() {
     };
   }, [textTimeoutId, mathTimeoutId]);
 
-  // Indicates which embeddings are being generated
-  const [loadingTextEmbeddings, setLoadingTextEmbeddings] = useState<
-    Array<number>
-  >([]);
-
-  function textEmbeddingsHandler(index: number, text: string) {
+  function textEmbeddingsHandler({
+    index,
+    text,
+    instruction,
+  }: {
+    index: number;
+    text?: string;
+    instruction?: string;
+  }) {
     const newEmbeddingInfo = [...textEmbeddingInfo];
-    newEmbeddingInfo[index].text = text;
+    if (text !== undefined) {
+      newEmbeddingInfo[index].text = text;
+    }
+    if (instruction !== undefined) {
+      newEmbeddingInfo[index].instruction = instruction;
+    }
     setTextEmbeddingInfo(newEmbeddingInfo);
 
     if (textTimeoutId) {
@@ -120,10 +131,11 @@ export default function Home() {
       return;
     }
 
-    setLoadingTextEmbeddings((loadingTextEmbeddings) => [
-      ...loadingTextEmbeddings,
-      index,
-    ]);
+    setTextEmbeddingInfo((textEmbeddingInfo) => {
+      const newInfo = [...textEmbeddingInfo];
+      newInfo[index].isLoading = true;
+      return newInfo;
+    });
     try {
       const response = await generateEmbeddings({
         embed_model_name: modelValue,
@@ -147,9 +159,12 @@ export default function Home() {
       });
       console.log(e);
     }
-    setLoadingTextEmbeddings((loadingTextEmbeddings) =>
-      loadingTextEmbeddings.filter((i) => i !== index),
-    );
+
+    setTextEmbeddingInfo((textEmbeddingInfo) => {
+      const newInfo = [...textEmbeddingInfo];
+      newInfo[index].isLoading = false;
+      return newInfo;
+    });
   }
 
   function mathEmbeddingsHandler(index: number, expression: string) {
@@ -227,7 +242,7 @@ export default function Home() {
                       ", ...]"
                     : "null"}
                 </h5>
-                {loadingTextEmbeddings.includes(index) && <h5>Loading</h5>}
+                {info.isLoading ? <h5>Loading</h5> : null}
                 <Button
                   onClick={() => {
                     const newEmbeddingInfo = [...textEmbeddingInfo];
@@ -247,14 +262,20 @@ export default function Home() {
                   placeholder="Enter instruction..."
                   value={info.instruction}
                   onChange={(e) => {
-                    textEmbeddingsHandler(index, e.target.value);
+                    textEmbeddingsHandler({
+                      index,
+                      instruction: e.target.value,
+                    });
                   }}
                 />
                 <Textarea
                   placeholder="Enter text..."
                   value={info.text}
                   onChange={(e) => {
-                    textEmbeddingsHandler(index, e.target.value);
+                    textEmbeddingsHandler({
+                      index,
+                      text: e.target.value,
+                    });
                   }}
                 />
               </div>
@@ -281,6 +302,7 @@ export default function Home() {
                     instruction: "",
                     text: "",
                     embedding: null,
+                    isLoading: false,
                   },
                 ]);
               }}
