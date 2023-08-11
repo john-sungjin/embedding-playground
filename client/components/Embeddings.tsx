@@ -1,11 +1,4 @@
-import {
-  action,
-  makeAutoObservable,
-  makeObservable,
-  observable,
-  reaction,
-} from "mobx";
-import { cosineSimilarity } from "@/app/math";
+import { makeAutoObservable } from "mobx";
 import {
   GenerateEmbeddingQueryParams,
   generateEmbedding,
