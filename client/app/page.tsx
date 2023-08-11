@@ -26,15 +26,12 @@ import { generateEmbeddings } from "./config";
 import math, { evaluate } from "mathjs";
 import { cosineSimilarity } from "./math";
 import { useToast } from "@/components/ui/use-toast";
+import { ModelSelector } from "./ModelSelector";
 
 const TEXT_EMBED_PREFIX = "t";
 const MATH_EMBED_PREFIX = "m";
 const TEXT_EDIT_TIMEOUT = 3000;
 const MATH_EDIT_TIMEOUT = 500;
-
-const models = [
-  { value: "hkunlp/instructor-large", label: "Instructor Large" },
-];
 
 interface TextEmbeddingInfo {
   name: string;
@@ -51,7 +48,6 @@ interface MathEmbeddingInfo {
 
 export default function Home() {
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
   const [modelValue, setModelValue] = useState<string | null>(null);
 
   const [textEmbeddingInfo, setTextEmbeddingInfo] = useState<
@@ -180,57 +176,11 @@ export default function Home() {
   return (
     <main className="flex h-screen">
       {/* SIDEBAR START */}
-      <div className="flex h-full w-1/3 flex-col space-y-4 border p-4">
+      <div className="flex h-full w-1/3 flex-col space-y-4 border-r p-4">
         <h1 className="font-bold">Embedding Playground</h1>
         {/* TEXT EMBEDDINGS START */}
         <h3>Text Embeddings</h3>
-        {/* MODEL DROPDOWN START */}
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-72 justify-between"
-            >
-              {modelValue
-                ? models.find((model) => model.value === modelValue)?.label
-                : "Select embedding model..."}
-              <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-72 p-0">
-            <Command>
-              <CommandInput placeholder="Search models..." />
-              <CommandEmpty>No model found.</CommandEmpty>
-              <CommandGroup>
-                {models.map((model) => (
-                  <CommandItem
-                    key={model.value}
-                    value={model.value}
-                    onSelect={(currentValue) => {
-                      setModelValue(
-                        currentValue === modelValue ? "" : currentValue,
-                      );
-                      setOpen(false);
-                    }}
-                  >
-                    {model.label}
-                    <CheckIcon
-                      className={cn(
-                        "ml-auto h-4 w-4",
-                        modelValue === model.value
-                          ? "opacity-100"
-                          : "opacity-0",
-                      )}
-                    />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
-        {/* MODEL DROPDOWN END */}
+        <ModelSelector modelValue={modelValue} setModelValue={setModelValue} />
         <div className="flex flex-col space-y-4">
           {textEmbeddingInfo.map((info, index) => (
             <div key={index} className="flex-col space-y-2">
