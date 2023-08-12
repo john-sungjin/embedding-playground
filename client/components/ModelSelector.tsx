@@ -20,6 +20,10 @@ const models: { value: Models; label: string }[] = [
   { value: "hkunlp/instructor-large", label: "Instructor Large" },
   { value: "hkunlp/instructor-xl", label: "Instructor XL" },
   { value: "thenlper/gte-large", label: "GTE Large" },
+  {
+    value: "Salesforce/codet5p-110m-embedding",
+    label: "Salesforce CodeT5+ 100m",
+  },
 ];
 export const INSTRUCTION_MODELS = new Set([
   "hkunlp/instructor-large",
@@ -27,8 +31,8 @@ export const INSTRUCTION_MODELS = new Set([
 ]);
 
 export const ModelSelector: React.FC<{
-  modelValue: Models | null;
-  setModelValue: (value: Models | null) => void;
+  modelValue: Models;
+  setModelValue: (value: Models) => void;
 }> = ({ modelValue, setModelValue }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -55,12 +59,10 @@ export const ModelSelector: React.FC<{
               <CommandItem
                 key={model.value}
                 value={model.value}
-                onSelect={(currentValue) => {
-                  // Coerce from string to a stricter type.
-                  const newModelValue = currentValue as Models | null;
-                  setModelValue(
-                    newModelValue === modelValue ? null : newModelValue,
-                  );
+                onSelect={(_value) => {
+                  // Using model.value instead of _value because of cmdk lowercases things.
+                  // See https://github.com/pacocoursey/cmdk/issues/150.
+                  setModelValue(model.value);
                   setOpen(false);
                 }}
               >

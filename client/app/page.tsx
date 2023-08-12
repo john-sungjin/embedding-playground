@@ -26,7 +26,9 @@ const MATH_EDIT_TIMEOUT = 500;
 
 const Home = observer(() => {
   const { toast } = useToast();
-  const [modelValue, setModelValue] = useState<Models | null>(null);
+  const [modelValue, setModelValue] = useState<Models>(
+    "hkunlp/instructor-large",
+  );
 
   // Edit on change
   const [textTimeoutId, setTextTimeoutId] = useState<number | null>(null);

@@ -1,4 +1,5 @@
 from typing import Literal
+from transformers import AutoModel, AutoTokenizer
 
 import fastapi
 from sentence_transformers import SentenceTransformer
@@ -23,6 +24,7 @@ Models = Literal[
     "hkunlp/instructor-xl",
     "hkunlp/instructor-large",
     "thenlper/gte-large",
+    "Salesforce/codet5p-110m-embedding",
 ]
 INSTRUCTOR_MODELS = {
     "hkunlp/instructor-xl",
@@ -34,6 +36,22 @@ GTE_LARGE = "thenlper/gte-large"
 class GenerateEmbeddingResponse(BaseModel):
     length: int
     embedding: list[float]
+
+
+def _generate_embedding_codet5(text: str) -> torch.Tensor:
+    checkpoint = "Salesforce/codet5p-110m-embedding"
+    device = "cpu"  # "cuda" for GPU usage or "cpu" for CPU usage
+
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint, trust_remote_code=True)
+    model = AutoModel.from_pretrained(checkpoint, trust_remote_code=True).to(device)
+
+    inputs = tokenizer.encode(text, return_tensors="pt").to(device)  # type: ignore
+    embedding = model(inputs)[0]
+    print(
+        f"Dimension of the embedding: {embedding.size()[0]}, with norm={embedding.norm().item()}"
+    )
+
+    return embedding
 
 
 @app.get("/api/generate_embedding", response_model=GenerateEmbeddingResponse)
@@ -57,6 +75,8 @@ def generate_embedding(
         model = SentenceTransformer(GTE_LARGE)
 
         embedding = model.encode([text], convert_to_numpy=False)[0]
+    elif embed_model_name == "Salesforce/codet5p-110m-embedding":
+        embedding = _generate_embedding_codet5(text)
     else:
         raise ValueError(f"Model {embed_model_name} not supported.")
 
