@@ -1,10 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useMemo, useState } from "react";
-import {
-  MathEmbedding,
-  TextEmbedding,
-  embedStore,
-} from "@/components/Embeddings";
+import { embedStore } from "@/components/Embeddings";
 import { cosineSimilarity } from "@/app/math";
 import { useChartDimensions } from "@/components/useChartDimensions";
 import * as d3 from "d3";

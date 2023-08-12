@@ -1,6 +1,7 @@
 import {
   generateSchemaTypes,
   generateFetchers,
+  generateReactQueryComponents,
 } from "@openapi-codegen/typescript";
 import { defineConfig } from "@openapi-codegen/cli";
 export default defineConfig({
@@ -16,7 +17,11 @@ export default defineConfig({
         filenamePrefix,
       });
       await generateFetchers(context, {
-        filenamePrefix,
+        filenamePrefix: "server",
+        schemasFiles,
+      });
+      await generateReactQueryComponents(context, {
+        filenamePrefix: "serverQuery",
         schemasFiles,
       });
     },
