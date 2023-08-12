@@ -22,7 +22,7 @@ export const MathEmbeddingInput = observer(
     // After 1 second of no edits to raw{Text,Instruction}, update the info
     // on the actual embedding.
     useEffect(() => {
-      if (editTimeoutId || rawExpression !== embedding.expression) {
+      if (rawExpression !== embedding.expression) {
         if (editTimeoutId) {
           clearTimeout(editTimeoutId);
         }
@@ -34,11 +34,13 @@ export const MathEmbeddingInput = observer(
 
           // Also recompute the embedding's value.
           embedStore.updateMathEmbedding(name);
+
+          setEditTimeoutId(null);
         }, MATH_EDIT_TIMEOUT);
 
         setEditTimeoutId(newTimeoutId);
       }
-    }, [name, rawExpression, editTimeoutId]);
+    }, [name, rawExpression, setEditTimeoutId]);
 
     return (
       <div className="flex-col space-y-2">
