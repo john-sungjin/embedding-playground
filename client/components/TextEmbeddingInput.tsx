@@ -56,6 +56,8 @@ export const TextEmbeddingInput = observer(
       }
     }, [name, rawText, rawInstruction]);
 
+    const isEmpty = !embedding.text;
+
     // When the embedding info is updated, call the backend again.
     const { data, isLoading, isFetching } = useGenerateEmbedding(
       {
@@ -66,6 +68,7 @@ export const TextEmbeddingInput = observer(
         },
       },
       {
+        enabled: !isEmpty,
         onError: (err) => {
           toast({
             title: "Something went wrong! Check the console for more details.",
@@ -80,8 +83,8 @@ export const TextEmbeddingInput = observer(
     useEffect(() => {
       console.log("updating global text embedding state");
       embedStore.updateTextEmbeddingState(name, {
-        isLoading,
-        isOutdated: !!editTimeoutId || isFetching,
+        isLoading: isLoading && !isEmpty,
+        isOutdated: !!editTimeoutId || isFetching || isEmpty,
         vector: data?.embedding,
       });
     }, [name, isLoading, isFetching, data, editTimeoutId]);
