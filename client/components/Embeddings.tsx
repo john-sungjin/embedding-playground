@@ -6,8 +6,8 @@ import {
 import { useGenerateEmbedding } from "@/app/generated/server/serverQueryComponents";
 import { evaluate } from "mathjs";
 
-const TEXT_EMBED_PREFIX = "t";
-const MATH_EMBED_PREFIX = "m";
+const TEXT_EMBED_PREFIX = "a";
+const MATH_EMBED_PREFIX = "b";
 
 export type Models = GenerateEmbeddingQueryParams["embed_model_name"];
 

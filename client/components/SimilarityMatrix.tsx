@@ -5,6 +5,8 @@ import { cosineSimilarity } from "@/app/math";
 import { useChartDimensions } from "@/components/useChartDimensions";
 import * as d3 from "d3";
 import { autorun, reaction } from "mobx";
+import { HoverCard, HoverCardTrigger } from "@/components/ui/hover-card";
+import { HoverCardContent } from "@radix-ui/react-hover-card";
 
 function namesToKey(i: string, j: string) {
   // make i < j
@@ -26,6 +28,9 @@ export const SimilarityMatrix: React.FC = observer(() => {
         const newSimilarities = new Map();
         embedStore.allValidEmbeddings.forEach((embedding, name) => {
           embedStore.allValidEmbeddings.forEach((otherEmbedding, otherName) => {
+            if (name === otherName) {
+              return;
+            }
             const key = namesToKey(name, otherName);
             const similarity = cosineSimilarity(
               embedding.vector!,
@@ -58,11 +63,25 @@ export const SimilarityMatrix: React.FC = observer(() => {
       return { source, target, value };
     });
 
-    const allNames = [...embedStore.allValidEmbeddings.keys()];
+    const allLabels = [...embedStore.allValidEmbeddings.keys()];
 
-    const xScale = d3.scaleBand(allNames, [0, chartDims.boundedWidth]);
-    const yScale = d3.scaleBand(allNames, [0, chartDims.boundedHeight]);
-    const colorScale = d3.scaleSequential(d3.interpolateBlues).domain([0, 1]);
+    const minValue = d3.min(data, (d) => d.value) || 0;
+    const maxValue = d3.max(data, (d) => d.value) || 1;
+    const range = maxValue - minValue;
+    const minScale = Math.max(minValue - range * 0.1, 0);
+    const maxScale = Math.min(maxValue + range * 0.1, 1);
+
+    console.log(minScale, maxScale);
+
+    const xScale = d3
+      .scaleBand(allLabels, [0, chartDims.boundedWidth])
+      .paddingInner(0.05);
+    const yScale = d3
+      .scaleBand(allLabels, [0, chartDims.boundedHeight])
+      .paddingInner(0.05);
+    const colorScale = d3
+      .scaleSequential(d3.interpolateBlues)
+      .domain([minScale, maxScale]);
 
     const rectangles = data.map(({ source, target, value }) => {
       const x = xScale(source);
@@ -70,7 +89,7 @@ export const SimilarityMatrix: React.FC = observer(() => {
       const width = xScale.bandwidth();
       const height = yScale.bandwidth();
       const color = colorScale(value);
-      return { x, y, width, height, color };
+      return { x, y, width, height, color, source, target, value };
     });
 
     return { rectangles, xScale, yScale };
@@ -79,14 +98,6 @@ export const SimilarityMatrix: React.FC = observer(() => {
   return (
     <div>
       <h3>Similarity Matrix</h3>
-      {Array.from(similarities).map(([key, similarity]) => {
-        const [i, j] = key.split(",");
-        return (
-          <div key={key}>
-            {i} {j} {similarity}
-          </div>
-        );
-      })}
       {/* HEATMAP START */}
       <div ref={chartRef}>
         <svg
@@ -97,16 +108,44 @@ export const SimilarityMatrix: React.FC = observer(() => {
           <g
             transform={`translate(${chartDims.marginLeft}, ${chartDims.marginTop})`}
           >
-            {rectangles.map(({ x, y, width, height, color }) => (
-              <rect
-                key={`${x}_${y}`}
-                x={x}
-                y={y}
-                width={width}
-                height={height}
-                fill={color}
-              />
-            ))}
+            {rectangles.map(
+              ({ x, y, width, height, color, source, target, value }) => (
+                <g key={`${x}_${y}`}>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={width}
+                    height={height}
+                    fill={color}
+                    pointerEvents={"all"}
+                  />
+
+                  {/* Embedding HTML content inside SVG */}
+                  <foreignObject
+                    x={x}
+                    y={y}
+                    width={width}
+                    height={height}
+                    pointerEvents={"all"}
+                    // className="relative"
+                  >
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <div className="w-full h-full border"></div>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80 flex flex-col bg-gray-200">
+                        <div>{source}</div>
+                        <div>{target}</div>
+                        <div className="flex flex-row justify-between">
+                          <div>Value</div>
+                          <div>{value}</div>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  </foreignObject>
+                </g>
+              ),
+            )}
             <g transform={`translate(0, ${chartDims.boundedHeight})`}>
               {xScale.domain().map((name) => (
                 <text
