@@ -1,7 +1,14 @@
 import { observer } from "mobx-react-lite";
-import { useEffect, useState } from "react";
-import { MathEmbedding, TextEmbedding } from "@/components/Embeddings";
+import { useEffect, useMemo, useState } from "react";
+import {
+  MathEmbedding,
+  TextEmbedding,
+  embedStore,
+} from "@/components/Embeddings";
 import { cosineSimilarity } from "@/app/math";
+import { useChartDimensions } from "@/components/useChartDimensions";
+import * as d3 from "d3";
+import { autorun, reaction } from "mobx";
 
 function namesToKey(i: string, j: string) {
   // make i < j
@@ -11,46 +18,68 @@ function namesToKey(i: string, j: string) {
   return `${i},${j}`;
 }
 
-const SimilarityRow: React.FC<{
-  name: string;
-  embedding: TextEmbedding | MathEmbedding;
-  updateSimilarities: (name: string) => void;
-}> = observer(({ name, embedding, updateSimilarities }) => {
-  useEffect(() => {
-    console.log("UPDATING SIMILARITIES:", name);
-    updateSimilarities(name);
-  }, [embedding.vector]);
-
-  return <div></div>;
-});
-
-export const SimilarityMatrix: React.FC<{
-  embeddings: Map<string, TextEmbedding | MathEmbedding>;
-}> = observer(({ embeddings }) => {
-  console.log("TRACKING EMBEDDINGS:", embeddings);
+export const SimilarityMatrix: React.FC = observer(() => {
   const [similarities, setSimilarities] = useState<Map<string, number>>(
     new Map(),
   );
 
-  function updateSimilarities(name: string) {
-    const newSimilarities = new Map(similarities);
-    const embedding = embeddings.get(name)!;
-    if (!embedding.vector) {
-      return;
-    }
-    embeddings.forEach((otherEmbedding, otherName) => {
-      if (!otherEmbedding.vector) {
-        return;
-      }
-      const key = namesToKey(name, otherName);
-      const similarity = cosineSimilarity(
-        embedding.vector!,
-        otherEmbedding.vector,
-      );
-      newSimilarities.set(key, similarity);
+  // Track embedding values and update when they change
+  useEffect(
+    () =>
+      autorun(() => {
+        console.log("RUNNING AUTORUN");
+        const newSimilarities = new Map();
+        embedStore.allValidEmbeddings.forEach((embedding, name) => {
+          embedStore.allValidEmbeddings.forEach((otherEmbedding, otherName) => {
+            const key = namesToKey(name, otherName);
+            const similarity = cosineSimilarity(
+              embedding.vector!,
+              otherEmbedding.vector!,
+            );
+            newSimilarities.set(key, similarity);
+          });
+        });
+
+        setSimilarities(newSimilarities);
+      }),
+
+    [],
+  );
+
+  const chartSettings = {
+    width: 500,
+    height: 500,
+    marginTop: 20,
+    marginRight: 20,
+    marginBottom: 20,
+    marginLeft: 20,
+  };
+
+  const { ref: chartRef, dims: chartDims } = useChartDimensions(chartSettings);
+
+  const { rectangles, xScale, yScale } = useMemo(() => {
+    const data = Array.from(similarities.entries()).map(([key, value]) => {
+      const [source, target] = key.split(",");
+      return { source, target, value };
     });
-    setSimilarities(newSimilarities);
-  }
+
+    const allNames = [...embedStore.allValidEmbeddings.keys()];
+
+    const xScale = d3.scaleBand(allNames, [0, 500]);
+    const yScale = d3.scaleBand(allNames, [0, 500]);
+    const colorScale = d3.scaleSequential(d3.interpolateBlues).domain([0, 1]);
+
+    const rectangles = data.map(({ source, target, value }) => {
+      const x = xScale(source);
+      const y = yScale(target);
+      const width = xScale.bandwidth();
+      const height = yScale.bandwidth();
+      const color = colorScale(value);
+      return { x, y, width, height, color };
+    });
+
+    return { rectangles, xScale, yScale };
+  }, [similarities]);
 
   return (
     <div>
@@ -63,14 +92,34 @@ export const SimilarityMatrix: React.FC<{
           </div>
         );
       })}
-      {Array.from(embeddings).map(([name, embedding]) => (
-        <SimilarityRow
-          key={name}
-          name={name}
-          embedding={embedding}
-          updateSimilarities={updateSimilarities}
-        />
-      ))}
+      {/* HEATMAP START */}
+      <div ref={chartRef}>
+        <svg width={chartDims.width} height={chartDims.height}>
+          {rectangles.map(({ x, y, width, height, color }) => (
+            <rect
+              key={`${x}_${y}`}
+              x={x}
+              y={y}
+              width={width}
+              height={height}
+              fill={color}
+            />
+          ))}
+          <g y={500}>
+            {xScale.domain().map((name) => (
+              <text
+                key={name}
+                x={xScale(name)! + xScale.bandwidth() / 2}
+                y={-5}
+                textAnchor="middle"
+              >
+                {name}
+              </text>
+            ))}
+          </g>
+        </svg>
+      </div>
+      {/* HEATMAP END */}
     </div>
   );
 });
