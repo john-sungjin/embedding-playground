@@ -1,30 +1,29 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  TrashIcon,
-  PlusIcon,
-  SymbolIcon,
-  ExclamationTriangleIcon,
-  CheckCircledIcon,
-} from "@radix-ui/react-icons";
-import { useState } from "react";
-import { ModelSelector } from "../components/ModelSelector";
-import { observer } from "mobx-react-lite";
-import { embedStore, Models } from "@/components/Embeddings";
+import { embedStore } from "@/components/Embeddings";
+import { MathEmbeddingInput } from "@/components/MathEmbeddingInput";
 import { SimilarityMatrix } from "@/components/SimilarityMatrix";
 import { TextEmbeddingInput } from "@/components/TextEmbeddingInput";
-import { MathEmbeddingInput } from "@/components/MathEmbeddingInput";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "@radix-ui/react-icons";
+import { observer } from "mobx-react-lite";
+import { useState } from "react";
+import { ModelConfig, ModelSelector } from "@/components/ModelSelector";
+import { useLocalStorage } from "usehooks-ts";
 
 const Home = observer(() => {
-  const [modelValue, setModelValue] = useState<Models>("thenlper/gte-large");
+  // The model config is stored in local storage so that it persists across
+  // page refreshes.
+  const [model, setModel] = useLocalStorage<ModelConfig>("model", {
+    name: "thenlper/gte-large",
+  });
 
   return (
     <main className="flex h-screen">
       {/* SIDEBAR START */}
       <div className="flex h-full w-1/3 flex-col space-y-4 border-r p-4">
         <h1 className="font-bold">Embedding Playground</h1>
-        <ModelSelector modelValue={modelValue} setModelValue={setModelValue} />
+        <ModelSelector model={model} setModel={setModel} />
         {/* TEXT EMBEDDINGS START */}
         <h3>Text Embeddings</h3>
         <div className="flex flex-col space-y-4">
@@ -32,7 +31,7 @@ const Home = observer(() => {
             <TextEmbeddingInput
               key={name}
               name={name}
-              model={modelValue}
+              model={model}
               embedding={embedding}
             />
           ))}

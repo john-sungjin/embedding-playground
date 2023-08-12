@@ -1,14 +1,11 @@
 import { makeAutoObservable } from "mobx";
-import {
-  GenerateEmbeddingQueryParams,
-  generateEmbedding,
-} from "@/app/generated/server/serverComponents";
+import { GenerateEmbeddingQueryParams } from "@/app/generated/server/serverComponents";
 import { evaluate } from "mathjs";
 
 const TEXT_EMBED_PREFIX = "a";
 const MATH_EMBED_PREFIX = "b";
 
-export type Models = GenerateEmbeddingQueryParams["embed_model_name"];
+export type ModelName = GenerateEmbeddingQueryParams["embed_model_name"];
 
 export interface TextEmbedding {
   instruction: string; // only used by instructor models

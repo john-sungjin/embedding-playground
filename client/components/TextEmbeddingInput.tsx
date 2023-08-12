@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { embedStore, Models, TextEmbedding } from "@/components/Embeddings";
+import { embedStore, ModelName, TextEmbedding } from "@/components/Embeddings";
 import { useGenerateEmbedding } from "@/app/generated/server/serverQueryComponents";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -12,7 +12,7 @@ import {
   CheckCircledIcon,
 } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
-import { INSTRUCTION_MODELS } from "./ModelSelector";
+import { INSTRUCTION_MODELS, ModelConfig } from "./ModelSelector";
 
 const TEXT_EDIT_TIMEOUT = 1000;
 
@@ -23,7 +23,7 @@ export const TextEmbeddingInput = observer(
     embedding,
   }: {
     name: string;
-    model: Models;
+    model: ModelConfig;
     embedding: TextEmbedding;
   }) => {
     const { toast } = useToast();
@@ -62,7 +62,7 @@ export const TextEmbeddingInput = observer(
     const { data, isLoading, isFetching } = useGenerateEmbedding(
       {
         queryParams: {
-          embed_model_name: model,
+          embed_model_name: model.name,
           text: embedding.text,
           instruction: embedding.instruction,
         },
@@ -127,7 +127,7 @@ export const TextEmbeddingInput = observer(
         {/* HEADER END */}
         {/* TEXT EMBEDDING INPUT START */}
         <div className="flex flex-row space-x-4">
-          {INSTRUCTION_MODELS.has(model) && (
+          {INSTRUCTION_MODELS.has(model.name) && (
             <Textarea
               placeholder="Enter instruction..."
               value={rawInstruction}
