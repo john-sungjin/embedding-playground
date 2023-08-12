@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, makeObservable, observable, trace } from "mobx";
 import {
   GenerateEmbeddingQueryParams,
   generateEmbedding,
@@ -10,17 +10,29 @@ const MATH_EMBED_PREFIX = "b";
 
 export type Models = GenerateEmbeddingQueryParams["embed_model_name"];
 
-export interface TextEmbedding {
-  instruction: string; // only used by instructor models
-  text: string;
-  isOutdated: boolean;
-  isLoading: boolean;
-  vector: number[] | null;
+// These are classes because we want vector to be not wrapped by a MobX Proxy.
+// Proxy was making it so that every array reassignment caused a reaction.
+// We make it observable.ref to indicate that the array will not change unless
+// reassigned (which is true for embeddings).
+export class TextEmbedding {
+  constructor(
+    public instruction: string, // only used by instructor models
+    public text: string,
+    public isOutdated: boolean,
+    public isLoading: boolean,
+    public vector: number[] | null,
+  ) {
+    makeAutoObservable(this, { vector: observable.ref }, { autoBind: true });
+  }
 }
 
-export interface MathEmbedding {
-  expression: string;
-  vector: number[] | null;
+export class MathEmbedding {
+  constructor(
+    public expression: string,
+    public vector: number[] | null,
+  ) {
+    makeAutoObservable(this, { vector: observable.ref }, { autoBind: true });
+  }
 }
 
 export class Embeddings {
@@ -32,13 +44,9 @@ export class Embeddings {
     this.textEmbeddings = new Map();
     this.mathEmbeddings = new Map();
 
-    this.textEmbeddings.set(TEXT_EMBED_PREFIX + "0", {
-      instruction: "",
-      text: "",
-      isOutdated: false,
-      isLoading: false,
-      vector: null,
-    });
+    console.log(this.textEmbeddings);
+
+    this.initTextEmbedding();
   }
 
   initTextEmbedding() {
@@ -46,13 +54,10 @@ export class Embeddings {
     while (this.textEmbeddings.has(`${TEXT_EMBED_PREFIX}${newIndex}`)) {
       newIndex += 1;
     }
-    this.textEmbeddings.set(`${TEXT_EMBED_PREFIX}${newIndex}`, {
-      instruction: "",
-      text: "",
-      vector: null,
-      isOutdated: false,
-      isLoading: false,
-    });
+    this.textEmbeddings.set(
+      `${TEXT_EMBED_PREFIX}${newIndex}`,
+      new TextEmbedding("", "", false, false, null),
+    );
   }
 
   initMathEmbedding() {
@@ -60,10 +65,10 @@ export class Embeddings {
     while (this.mathEmbeddings.has(`${MATH_EMBED_PREFIX}${newIndex}`)) {
       newIndex += 1;
     }
-    this.mathEmbeddings.set(`${MATH_EMBED_PREFIX}${newIndex}`, {
-      expression: "",
-      vector: null,
-    });
+    this.mathEmbeddings.set(
+      `${MATH_EMBED_PREFIX}${newIndex}`,
+      new MathEmbedding("", null),
+    );
   }
 
   deleteTextEmbedding(name: string) {

@@ -14,7 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import { INSTRUCTION_MODELS } from "./ModelSelector";
 
-const TEXT_EDIT_TIMEOUT = 1000;
+const TEXT_EDIT_TIMEOUT = 2000;
 
 export const TextEmbeddingInput = observer(
   ({
@@ -78,12 +78,15 @@ export const TextEmbeddingInput = observer(
 
     // Also keep the global embedding state updated.
     useEffect(() => {
-      console.log("updating global text embedding state");
       embedStore.updateTextEmbeddingState(name, {
         isLoading,
         isOutdated: !!editTimeoutId || isFetching,
-        vector: data?.embedding,
       });
+      if (data) {
+        embedStore.updateTextEmbeddingState(name, {
+          vector: data.embedding,
+        });
+      }
     }, [name, isLoading, isFetching, data, editTimeoutId]);
 
     return (
