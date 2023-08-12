@@ -13,14 +13,8 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { INSTRUCTION_MODELS, ModelSelector } from "../components/ModelSelector";
 import { observer } from "mobx-react-lite";
-import {
-  embedStore,
-  MathEmbedding,
-  Models,
-  TextEmbedding,
-} from "@/components/Embeddings";
+import { embedStore, Models } from "@/components/Embeddings";
 import { SimilarityMatrix } from "@/components/SimilarityMatrix";
-import { autorun } from "mobx";
 
 const TEXT_EDIT_TIMEOUT = 1000;
 const MATH_EDIT_TIMEOUT = 500;
