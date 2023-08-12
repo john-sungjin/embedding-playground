@@ -3,7 +3,6 @@ import {
   GenerateEmbeddingQueryParams,
   generateEmbedding,
 } from "@/app/generated/server/serverComponents";
-import { useGenerateEmbedding } from "@/app/generated/server/serverQueryComponents";
 import { evaluate } from "mathjs";
 
 const TEXT_EMBED_PREFIX = "t";
@@ -75,6 +74,7 @@ export class Embeddings {
     this.mathEmbeddings.delete(name);
   }
 
+  /*
   // Note: this is a generator to annotate MobX flow
   // TL;DR async is weird with MobX, so it's either this or wrapping
   // everything in runInActions
@@ -101,6 +101,15 @@ export class Embeddings {
     } finally {
       embedding.isLoading = false;
     }
+  }
+  */
+
+  updateTextEmbeddingState(name: string, state: Partial<TextEmbedding>) {
+    const embedding = this.textEmbeddings.get(name);
+    if (!embedding) {
+      throw new Error(`Embedding ${name} does not exist!`);
+    }
+    Object.assign(embedding, state);
   }
 
   updateMathEmbedding(name: string) {
