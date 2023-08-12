@@ -19,8 +19,7 @@ export const MathEmbeddingInput = observer(
 
     const [editTimeoutId, setEditTimeoutId] = useState<number | null>(null);
 
-    // After 1 second of no edits to raw{Text,Instruction}, update the info
-    // on the actual embedding.
+    // After 500ms of no edits, write the expression to the global db.
     useEffect(() => {
       if (rawExpression !== embedding.expression) {
         if (editTimeoutId) {

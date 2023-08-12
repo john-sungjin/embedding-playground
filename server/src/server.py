@@ -26,6 +26,7 @@ Models = Literal[
     "thenlper/gte-large",
     "Salesforce/codet5p-110m-embedding",
     "Salesforce/codet5p-2b",
+    "text-embedding-ada-002",
 ]
 INSTRUCTOR_MODELS = {
     "hkunlp/instructor-xl",
@@ -103,6 +104,8 @@ def generate_embedding(
         embedding = _generate_embedding_codet5_embedding(text)
     elif embed_model_name == "Salesforce/codet5p-2b":
         embedding = _generate_embedding_codet5_generic(text)
+    elif embed_model_name == "text-embedding-ada-002":
+        raise ValueError("Called to OpenAI should be made client-side")
     else:
         raise ValueError(f"Model {embed_model_name} not supported.")
 

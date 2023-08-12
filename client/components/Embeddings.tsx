@@ -1,14 +1,18 @@
-import { makeAutoObservable, makeObservable, observable, trace } from "mobx";
-import {
-  GenerateEmbeddingQueryParams,
-  generateEmbedding,
-} from "@/app/generated/server/serverComponents";
+import { makeAutoObservable, observable } from "mobx";
+import { GenerateEmbeddingQueryParams } from "@/app/generated/server/serverComponents";
 import { evaluate } from "mathjs";
 
 const TEXT_EMBED_PREFIX = "a";
 const MATH_EMBED_PREFIX = "b";
 
-export type Models = GenerateEmbeddingQueryParams["embed_model_name"];
+export type ModelName = GenerateEmbeddingQueryParams["embed_model_name"];
+
+export interface ModelConfig {
+  name: ModelName;
+
+  // For models that require an API key, this is the API key.
+  api_key?: string;
+}
 
 // These are classes because we want vector to be not wrapped by a MobX Proxy.
 // Proxy was making it so that every array reassignment caused a reaction.
