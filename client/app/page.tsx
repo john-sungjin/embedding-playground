@@ -20,6 +20,7 @@ import {
   TextEmbedding,
 } from "@/components/Embeddings";
 import { SimilarityMatrix } from "@/components/SimilarityMatrix";
+import { autorun } from "mobx";
 
 const TEXT_EDIT_TIMEOUT = 1000;
 const MATH_EDIT_TIMEOUT = 500;
@@ -91,23 +92,6 @@ const Home = observer(() => {
     }, MATH_EDIT_TIMEOUT);
 
     setMathTimeoutId(newTimeoutId);
-  }
-
-  // which similarity matrix embeddings to show
-  // make this array of names?
-  const similarityMatrixEmbeddings = new Map<
-    string,
-    TextEmbedding | MathEmbedding
-  >();
-  for (const [name, embedding] of embedStore.textEmbeddings) {
-    if (embedding.vector) {
-      similarityMatrixEmbeddings.set(name, embedding);
-    }
-  }
-  for (const [name, embedding] of embedStore.mathEmbeddings) {
-    if (embedding.vector) {
-      similarityMatrixEmbeddings.set(name, embedding);
-    }
   }
 
   return (
@@ -250,7 +234,7 @@ const Home = observer(() => {
       {/* SIDEBAR END */}
       {/* VIEW START */}
       <div className="h-full w-full">
-        <SimilarityMatrix embeddings={similarityMatrixEmbeddings} />
+        <SimilarityMatrix />
       </div>
       {/* VIEW END */}
     </main>

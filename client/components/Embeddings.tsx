@@ -1,11 +1,4 @@
-import {
-  action,
-  makeAutoObservable,
-  makeObservable,
-  observable,
-  reaction,
-} from "mobx";
-import { cosineSimilarity } from "@/app/math";
+import { makeAutoObservable } from "mobx";
 import {
   GenerateEmbeddingQueryParams,
   generateEmbedding,
@@ -102,6 +95,7 @@ export class Embeddings {
         },
       });
       embedding.vector = response.embedding;
+      embedding.isOutdated = false;
     } catch (e) {
       throw e;
     } finally {
@@ -116,7 +110,7 @@ export class Embeddings {
     }
 
     const scope: Record<string, any> = {};
-    for (const [key, value] of this.allEmbeddings) {
+    for (const [key, value] of this.allValidEmbeddings) {
       if (value.vector) {
         scope[key] = value.vector;
       }
@@ -142,9 +136,11 @@ export class Embeddings {
     const embedding = this.textEmbeddings.get(name)!;
     if (instruction !== undefined) {
       embedding.instruction = instruction;
+      embedding.isOutdated = true;
     }
     if (text !== undefined) {
       embedding.text = text;
+      embedding.isOutdated = true;
     }
   }
 
@@ -152,14 +148,17 @@ export class Embeddings {
     this.mathEmbeddings.get(name)!.expression = expression;
   }
 
-  get allEmbeddings() {
-    console.log("GETTING ALL EMBEDDINGS");
+  get allValidEmbeddings() {
     const mergedEmbeddings = new Map<string, TextEmbedding | MathEmbedding>();
     for (const [key, value] of this.textEmbeddings) {
-      mergedEmbeddings.set(key, value);
+      if (value.vector) {
+        mergedEmbeddings.set(key, value);
+      }
     }
     for (const [key, value] of this.mathEmbeddings) {
-      mergedEmbeddings.set(key, value);
+      if (value.vector) {
+        mergedEmbeddings.set(key, value);
+      }
     }
     return mergedEmbeddings;
   }
