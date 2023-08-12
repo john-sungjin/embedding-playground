@@ -1,11 +1,11 @@
 from typing import Literal
-from transformers import AutoModel, AutoTokenizer
 
 import fastapi
-from sentence_transformers import SentenceTransformer
 import torch
 from InstructorEmbedding import INSTRUCTOR
 from pydantic import BaseModel
+from sentence_transformers import SentenceTransformer
+from transformers import AutoModel, AutoModelForSeq2SeqLM, AutoTokenizer
 
 app = fastapi.FastAPI()
 
@@ -25,6 +25,7 @@ Models = Literal[
     "hkunlp/instructor-large",
     "thenlper/gte-large",
     "Salesforce/codet5p-110m-embedding",
+    "Salesforce/codet5p-2b",
 ]
 INSTRUCTOR_MODELS = {
     "hkunlp/instructor-xl",
@@ -38,7 +39,7 @@ class GenerateEmbeddingResponse(BaseModel):
     embedding: list[float]
 
 
-def _generate_embedding_codet5(text: str) -> torch.Tensor:
+def _generate_embedding_codet5_embedding(text: str) -> torch.Tensor:
     checkpoint = "Salesforce/codet5p-110m-embedding"
     device = "cpu"  # "cuda" for GPU usage or "cpu" for CPU usage
 
@@ -52,6 +53,29 @@ def _generate_embedding_codet5(text: str) -> torch.Tensor:
     )
 
     return embedding
+
+
+def _generate_embedding_codet5_generic(text: str) -> torch.Tensor:
+    checkpoint = "Salesforce/codet5p-2b"
+    device = "cpu"  # "cuda" for GPU usage or "cpu" for CPU usage
+
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+    model: AutoModelForSeq2SeqLM = AutoModelForSeq2SeqLM.from_pretrained(
+        checkpoint, torch_dtype=torch.float16, trust_remote_code=True
+    ).to(device)
+
+    text_input = tokenizer(
+        text, padding="max_length", max_length=360, truncation=True, return_tensors="pt"
+    ).to(device)
+    breakpoint()
+    text_output = model.encoder(
+        text_input.input_ids, attention_mask=text_input.attention_mask, return_dict=True
+    )
+    text_embed = torch.nn.functional.normalize(
+        model.proj(text_output.last_hidden_state[:, 0, :]), dim=-1
+    )
+
+    return text_embed
 
 
 @app.get("/api/generate_embedding", response_model=GenerateEmbeddingResponse)
@@ -76,7 +100,9 @@ def generate_embedding(
 
         embedding = model.encode([text], convert_to_numpy=False)[0]
     elif embed_model_name == "Salesforce/codet5p-110m-embedding":
-        embedding = _generate_embedding_codet5(text)
+        embedding = _generate_embedding_codet5_embedding(text)
+    elif embed_model_name == "Salesforce/codet5p-2b":
+        embedding = _generate_embedding_codet5_generic(text)
     else:
         raise ValueError(f"Model {embed_model_name} not supported.")
 
