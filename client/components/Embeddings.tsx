@@ -7,6 +7,13 @@ const MATH_EMBED_PREFIX = "b";
 
 export type ModelName = GenerateEmbeddingQueryParams["embed_model_name"];
 
+export interface ModelConfig {
+  name: ModelName;
+
+  // For models that require an API key, this is the API key.
+  api_key?: string;
+}
+
 export interface TextEmbedding {
   instruction: string; // only used by instructor models
   text: string;

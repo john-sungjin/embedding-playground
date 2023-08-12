@@ -1,7 +1,10 @@
 import { observer } from "mobx-react-lite";
-import { embedStore, ModelName, TextEmbedding } from "@/components/Embeddings";
+import {
+  embedStore,
+  ModelConfig,
+  TextEmbedding,
+} from "@/components/Embeddings";
 import { useGenerateEmbedding } from "@/app/generated/server/serverQueryComponents";
-import { useToast } from "@/components/ui/use-toast";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +15,8 @@ import {
   CheckCircledIcon,
 } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
-import { INSTRUCTION_MODELS, ModelConfig } from "./ModelSelector";
+import { INSTRUCTION_MODELS } from "@/components/ModelSelector";
+import { useEmbedding } from "./useEmbeddings";
 
 const TEXT_EDIT_TIMEOUT = 1000;
 
@@ -26,8 +30,6 @@ export const TextEmbeddingInput = observer(
     model: ModelConfig;
     embedding: TextEmbedding;
   }) => {
-    const { toast } = useToast();
-
     const [rawText, setRawText] = useState(embedding.text);
     const [rawInstruction, setRawInstruction] = useState(embedding.instruction);
 
@@ -59,25 +61,7 @@ export const TextEmbeddingInput = observer(
     const isEmpty = !embedding.text;
 
     // When the embedding info is updated, call the backend again.
-    const { data, isLoading, isFetching } = useGenerateEmbedding(
-      {
-        queryParams: {
-          embed_model_name: model.name,
-          text: embedding.text,
-          instruction: embedding.instruction,
-        },
-      },
-      {
-        enabled: !isEmpty,
-        onError: (err) => {
-          toast({
-            title: "Something went wrong! Check the console for more details.",
-            variant: "destructive",
-          });
-          console.error(err);
-        },
-      },
-    );
+    const { data, isLoading, isFetching } = useEmbedding({ model, embedding });
 
     // Also keep the global embedding state updated.
     useEffect(() => {

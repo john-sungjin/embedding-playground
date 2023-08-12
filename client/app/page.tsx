@@ -1,6 +1,6 @@
 "use client";
 
-import { embedStore } from "@/components/Embeddings";
+import { ModelConfig, embedStore } from "@/components/Embeddings";
 import { MathEmbeddingInput } from "@/components/MathEmbeddingInput";
 import { SimilarityMatrix } from "@/components/SimilarityMatrix";
 import { TextEmbeddingInput } from "@/components/TextEmbeddingInput";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
-import { ModelConfig, ModelSelector } from "@/components/ModelSelector";
+import { ModelSelector } from "@/components/ModelSelector";
 import { useLocalStorage } from "usehooks-ts";
 
 const Home = observer(() => {
