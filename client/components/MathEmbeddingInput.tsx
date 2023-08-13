@@ -3,13 +3,9 @@ import { embedStore, MathEmbedding } from "@/components/Embeddings";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  TrashIcon,
-  SymbolIcon,
-  ExclamationTriangleIcon,
-  CheckCircledIcon,
-} from "@radix-ui/react-icons";
+import { TrashIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
+import { reaction } from "mobx";
 
 const MATH_EDIT_TIMEOUT = 500;
 
@@ -35,6 +31,21 @@ export const MathEmbeddingInput = observer(
         };
       }
     }, [name, rawExpression, embedding.expression]);
+
+    // recompute if any dependencies change
+    useEffect(
+      () =>
+        reaction(
+          () =>
+            Array.from(embedding.dependencies.values()).map(
+              (name) => embedStore.textEmbeddings.get(name)?.vector!,
+            ),
+          () => {
+            embedStore.updateMathEmbedding(name);
+          },
+        ),
+      [],
+    );
 
     return (
       <div className="flex-col space-y-2">

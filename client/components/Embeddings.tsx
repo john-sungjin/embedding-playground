@@ -1,6 +1,6 @@
 import { makeAutoObservable, observable } from "mobx";
 import { GenerateEmbeddingQueryParams } from "@/app/generated/server/serverComponents";
-import { evaluate } from "mathjs";
+import { SymbolNode, evaluate, parse } from "mathjs";
 import { makePersistable } from "mobx-persist-store";
 
 const TEXT_EMBED_PREFIX = "a";
@@ -37,6 +37,18 @@ export class MathEmbedding {
     public vector: number[] | null,
   ) {
     makeAutoObservable(this, { vector: observable.ref }, { autoBind: true });
+  }
+
+  get dependencies(): Set<string> {
+    const node = parse(this.expression);
+    const dependencies: Set<string> = new Set();
+    node.traverse((node) => {
+      // @ts-expect-error
+      if (node.isSymbolNode) {
+        dependencies.add((node as SymbolNode).name);
+      }
+    });
+    return dependencies;
   }
 }
 
@@ -188,7 +200,7 @@ export class Embeddings {
     }
 
     const scope: Record<string, any> = {};
-    for (const [key, value] of this.allValidEmbeddings) {
+    for (const [key, value] of this.textEmbeddings) {
       if (value.vector) {
         scope[key] = value.vector;
       }
