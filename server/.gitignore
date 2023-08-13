@@ -1,5 +1,3 @@
-server_openapi.json
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

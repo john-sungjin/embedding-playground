@@ -7,7 +7,7 @@ import { defineConfig } from "@openapi-codegen/cli";
 export default defineConfig({
   server: {
     from: {
-      relativePath: "../server/server_openapi.json",
+      relativePath: "server_openapi.json",
       source: "file",
     },
     outputDir: "app/generated/server",
