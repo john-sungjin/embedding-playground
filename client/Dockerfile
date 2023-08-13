@@ -10,7 +10,8 @@ RUN yarn install --frozen-lockfile
 
 COPY . .
 
-RUN yarn build
+ENV NEXT_TELEMETRY_DISABLED 1
+RUN yarn generate && yarn build
 
 USER nextjs
 ENV NODE_ENV production

@@ -1,0 +1,36 @@
+version: '2'
+
+services:
+  client:
+    build: client
+    restart: always
+    labels:
+      traefik.enable: true
+      traefik.http.routers.embedding-playground-client.rule: Host(`embed.sheth.io`)
+      traefik.http.routers.embedding-playground-client.tls: true
+      traefik.http.routers.embedding-playground-client.middlewares: SecureTLS
+      com.centurylinklabs.watchtower.enable: "false"
+    networks:
+       - traefik
+       - default
+  server:
+    build: server
+    restart: always
+    labels:
+      traefik.enable: true
+      traefik.http.routers.embedding-playground-server.rule: "Host(`embed.sheth.io`) && PathPrefix(`/api`)"
+      traefik.http.routers.embedding-playground-server.tls: true
+      traefik.http.routers.embedding-playground-server.middlewares: SecureTLS
+      com.centurylinklabs.watchtower.enable: "false"
+    networks:
+       - traefik
+       - default
+    ports:
+      - 8000
+    volumes:
+      - ./cache/huggingface:/home/appuser/.cache/huggingface/
+      - ./cache/torch:/home/appuser/.cache/torch/
+
+networks:
+  traefik:
+    external: true
