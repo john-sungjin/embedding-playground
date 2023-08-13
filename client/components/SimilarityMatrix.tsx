@@ -28,7 +28,6 @@ export const SimilarityMatrix: React.FC = observer(() => {
   const [similarities, setSimilarities] = useState<Map<string, number>>(
     new Map(),
   );
-  const [allLabels, setAllLabels] = useState<Array<string>>([]);
 
   // Track embedding values and update when they change
   useEffect(
@@ -55,19 +54,18 @@ export const SimilarityMatrix: React.FC = observer(() => {
           });
 
           setSimilarities(newSimilarities);
-          setAllLabels([...embedStore.allValidEmbeddings.keys()]);
         },
       ),
     [],
   );
 
   const chartSettings = {
-    width: 500,
-    height: 500,
-    marginTop: 50,
-    marginRight: 50,
-    marginBottom: 50,
-    marginLeft: 50,
+    width: 600,
+    height: 600,
+    marginTop: 100,
+    marginRight: 100,
+    marginBottom: 100,
+    marginLeft: 100,
   };
 
   // investigate why this is changing...
@@ -85,19 +83,32 @@ export const SimilarityMatrix: React.FC = observer(() => {
     const minScale = Math.max(minValue - range * 0.1, 0);
     const maxScale = Math.min(maxValue + range * 0.1, 1);
 
+    // labels: maps name to label
+    const labels = new Map<string, string>();
+    embedStore.allValidEmbeddings.forEach((embedding, key) =>
+      labels.set(
+        key,
+        embedding instanceof TextEmbedding
+          ? `${embedding.instruction}${embedding.text}`
+          : `${embedding.expression}`,
+      ),
+    );
+
+    console.log("Labels: ", labels);
+
     const xScale = d3
-      .scaleBand(allLabels, [0, chartDims.boundedWidth])
+      .scaleBand(labels.values(), [0, chartDims.boundedWidth])
       .paddingInner(0.05);
     const yScale = d3
-      .scaleBand(allLabels, [0, chartDims.boundedHeight])
+      .scaleBand(labels.values(), [0, chartDims.boundedHeight])
       .paddingInner(0.05);
     const colorScale = d3
       .scaleSequential(d3.interpolateBlues)
       .domain([minScale, maxScale]);
 
     const rectangles = data.map(({ source, target, value }) => {
-      const x = xScale(source);
-      const y = yScale(target);
+      const x = xScale(labels.get(source)!);
+      const y = yScale(labels.get(target)!);
       const width = xScale.bandwidth();
       const height = yScale.bandwidth();
       const color = colorScale(value);
@@ -158,7 +169,7 @@ export const SimilarityMatrix: React.FC = observer(() => {
                         </HoverCardTrigger>
                         <HoverCardPortal>
                           <HoverCardContent
-                            className="w-48 flex flex-col space-y-1"
+                            className="w-48 flex flex-col space-y-1 pointer-events-none"
                             side={"top"}
                           >
                             <div className="px-2 py-1 font-mono text-sm bg-gray-100 rounded-md">
@@ -179,30 +190,46 @@ export const SimilarityMatrix: React.FC = observer(() => {
               },
             )}
             <g transform={`translate(0, ${chartDims.boundedHeight})`}>
-              {xScale.domain().map((name) => (
-                <text
-                  key={name}
-                  x={xScale(name)! + xScale.bandwidth() / 2}
-                  y={15}
-                  textAnchor="middle"
-                  fontSize={12}
-                >
-                  {name}
-                </text>
-              ))}
+              {xScale.domain().map((label) => {
+                let displayLabel = label;
+                if (label.length > 10) {
+                  displayLabel = label.slice(0, 10) + "...";
+                }
+
+                return (
+                  <text
+                    key={label}
+                    x={xScale(label)! + xScale.bandwidth() / 2}
+                    y={15}
+                    textAnchor="end"
+                    fontSize={12}
+                    transform={`rotate(-45, ${
+                      xScale(label)! + xScale.bandwidth() / 2
+                    }, 15)`}
+                  >
+                    {displayLabel}
+                  </text>
+                );
+              })}
             </g>
             <g transform={`translate(-3, 0)`}>
-              {yScale.domain().map((name) => (
-                <text
-                  key={name}
-                  x={-3}
-                  y={yScale(name)! + yScale.bandwidth() / 2}
-                  textAnchor="end"
-                  fontSize={12}
-                >
-                  {name}
-                </text>
-              ))}
+              {yScale.domain().map((label) => {
+                let displayLabel = label;
+                if (label.length > 10) {
+                  displayLabel = label.slice(0, 10) + "...";
+                }
+                return (
+                  <text
+                    key={label}
+                    x={-3}
+                    y={yScale(label)! + yScale.bandwidth() / 2}
+                    textAnchor="end"
+                    fontSize={12}
+                  >
+                    {displayLabel}
+                  </text>
+                );
+              })}
             </g>
           </g>
         </svg>
