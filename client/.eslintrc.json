@@ -6,5 +6,8 @@
   "extends": [
     "next/core-web-vitals",
     "plugin:mobx/recommended"
-  ]
+  ],
+  "rules": {
+    "mobx/missing-observer": "off"
+  }
 }

@@ -17,14 +17,9 @@ export const MathEmbeddingInput = observer(
   ({ name, embedding }: { name: string; embedding: MathEmbedding }) => {
     const [rawExpression, setRawExpression] = useState(embedding.expression);
 
-    const [editTimeoutId, setEditTimeoutId] = useState<number | null>(null);
-
     // After 500ms of no edits, write the expression to the global db.
     useEffect(() => {
       if (rawExpression !== embedding.expression) {
-        if (editTimeoutId) {
-          clearTimeout(editTimeoutId);
-        }
         const newTimeoutId = window.setTimeout(async () => {
           embedStore.updateExpression({
             name,
@@ -33,13 +28,13 @@ export const MathEmbeddingInput = observer(
 
           // Also recompute the embedding's value.
           embedStore.updateMathEmbedding(name);
-
-          setEditTimeoutId(null);
         }, MATH_EDIT_TIMEOUT);
 
-        setEditTimeoutId(newTimeoutId);
+        return () => {
+          window.clearTimeout(newTimeoutId);
+        };
       }
-    }, [name, rawExpression, setEditTimeoutId]);
+    }, [name, rawExpression, embedding.expression]);
 
     return (
       <div className="flex-col space-y-2">

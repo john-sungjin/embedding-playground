@@ -4,7 +4,6 @@ import {
   ModelConfig,
   TextEmbedding,
 } from "@/components/Embeddings";
-import { useGenerateEmbedding } from "@/app/generated/server/serverQueryComponents";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,9 +15,9 @@ import {
 } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { INSTRUCTION_MODELS } from "@/components/ModelSelector";
-import { useEmbedding } from "./useEmbeddings";
+import { useEmbedding } from "@/components/useEmbeddings";
 
-const TEXT_EDIT_TIMEOUT = 2000;
+const TEXT_EDIT_TIMEOUT = 1000;
 
 export const TextEmbeddingInput = observer(
   ({
@@ -33,7 +32,7 @@ export const TextEmbeddingInput = observer(
     const [rawText, setRawText] = useState(embedding.text);
     const [rawInstruction, setRawInstruction] = useState(embedding.instruction);
 
-    const [editTimeoutId, setEditTimeoutId] = useState<number | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
 
     // After 1 second of no edits to raw{Text,Instruction}, update the info
     // on the actual embedding.
@@ -42,21 +41,23 @@ export const TextEmbeddingInput = observer(
         rawText !== embedding.text ||
         rawInstruction !== embedding.instruction
       ) {
-        if (editTimeoutId) {
-          clearTimeout(editTimeoutId);
-        }
-        const newTimeoutId = window.setTimeout(async () => {
+        setIsEditing(true);
+
+        const timeoutId = window.setTimeout(async () => {
           embedStore.updateTextOrInstruction({
             name,
             text: rawText,
             instruction: rawInstruction,
           });
-          setEditTimeoutId(null);
+
+          setIsEditing(false);
         }, TEXT_EDIT_TIMEOUT);
 
-        setEditTimeoutId(newTimeoutId);
+        return () => {
+          window.clearTimeout(timeoutId);
+        };
       }
-    }, [name, rawText, rawInstruction]);
+    }, [name, rawText, rawInstruction, embedding.text, embedding.instruction]);
 
     const isEmpty = !embedding.text;
 
@@ -67,14 +68,14 @@ export const TextEmbeddingInput = observer(
     useEffect(() => {
       embedStore.updateTextEmbeddingState(name, {
         isLoading: isLoading && !isEmpty,
-        isOutdated: !!editTimeoutId || isFetching || isEmpty,
+        isOutdated: !!isEditing || isFetching || isEmpty,
       });
       if (data) {
         embedStore.updateTextEmbeddingState(name, {
           vector: data.embedding,
         });
       }
-    }, [name, isLoading, isFetching, data, editTimeoutId]);
+    }, [name, isLoading, isFetching, isEmpty, data, isEditing]);
 
     return (
       <div className="flex-col space-y-2">
