@@ -68,7 +68,7 @@ export const TextEmbeddingInput = observer(
     useEffect(() => {
       embedStore.updateTextEmbeddingState(name, {
         isLoading: isLoading && !isEmpty,
-        isOutdated: !!isEditing || isFetching || isEmpty,
+        isOutdated: isEditing || isFetching || isEmpty,
       });
       if (data) {
         embedStore.updateTextEmbeddingState(name, {
