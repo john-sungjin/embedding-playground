@@ -1,6 +1,7 @@
 import { makeAutoObservable, observable } from "mobx";
 import { GenerateEmbeddingQueryParams } from "@/app/generated/server/serverComponents";
 import { evaluate } from "mathjs";
+import { makePersistable } from "mobx-persist-store";
 
 const TEXT_EMBED_PREFIX = "a";
 const MATH_EMBED_PREFIX = "b";
@@ -44,13 +45,72 @@ export class Embeddings {
   mathEmbeddings: Map<string, MathEmbedding>;
 
   constructor() {
-    makeAutoObservable(this, {}, { autoBind: true });
     this.textEmbeddings = new Map();
     this.mathEmbeddings = new Map();
 
-    console.log(this.textEmbeddings);
+    // clearPersistedStore(this);
+    makeAutoObservable(this, {}, { autoBind: true });
+    makePersistable(this, {
+      name: "Embeddings",
+      properties: [
+        {
+          key: "textEmbeddings",
+          serialize: (map: Map<string, TextEmbedding>) => {
+            // serialize instruction and text, but not isOutdated, isLoading, or vector
+            const serialized = JSON.stringify(
+              [...map.entries()].map(([key, value]) => {
+                return [
+                  key,
+                  { instruction: value.instruction, text: value.text },
+                ];
+              }),
+            );
+            return serialized;
+          },
+          deserialize: (str: string) => {
+            const entries = JSON.parse(str).map(
+              ([key, value]: [string, TextEmbedding]) => {
+                return [
+                  key,
+                  new TextEmbedding(
+                    value.instruction,
+                    value.text,
+                    false,
+                    false,
+                    null,
+                  ),
+                ];
+              },
+            );
+            return new Map<string, TextEmbedding>(entries);
+          },
+        },
+        {
+          key: "mathEmbeddings",
+          serialize: (map: Map<string, MathEmbedding>) => {
+            const serialized = JSON.stringify(
+              [...map.entries()].map(([key, value]) => {
+                return [
+                  key,
+                  { expression: value.expression, vector: value.vector },
+                ];
+              }),
+            );
+            return serialized;
+          },
+          deserialize: (str: string) => {
+            const entries = JSON.parse(str).map(
+              ([key, value]: [string, MathEmbedding]) => {
+                return [key, new MathEmbedding(value.expression, value.vector)];
+              },
+            );
+            return new Map<string, MathEmbedding>(entries);
+          },
+        },
+      ],
 
-    this.initTextEmbedding();
+      storage: window.localStorage,
+    });
   }
 
   initTextEmbedding() {

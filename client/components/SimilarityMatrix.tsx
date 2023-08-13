@@ -1,6 +1,10 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useMemo, useState } from "react";
-import { embedStore } from "@/components/Embeddings";
+import {
+  MathEmbedding,
+  TextEmbedding,
+  embedStore,
+} from "@/components/Embeddings";
 import { cosineSimilarity } from "@/app/math";
 import { useChartDimensions } from "@/components/useChartDimensions";
 import * as d3 from "d3";
@@ -32,12 +36,15 @@ export const SimilarityMatrix: React.FC = observer(() => {
       reaction(
         () =>
           Array.from(embedStore.allValidEmbeddings).map(
-            ([name, embedding]) => ({ name, vector: embedding.vector! }),
+            ([name, embedding]) => ({
+              name,
+              vector: embedding.vector!,
+            }),
           ),
-        (value) => {
+        (embeddings) => {
           const newSimilarities = new Map();
-          value.forEach(({ name, vector }) => {
-            value.forEach(({ name: otherName, vector: otherVector }) => {
+          embeddings.forEach(({ name, vector }) => {
+            embeddings.forEach(({ name: otherName, vector: otherVector }) => {
               if (name === otherName) {
                 return;
               }
@@ -47,13 +54,10 @@ export const SimilarityMatrix: React.FC = observer(() => {
             });
           });
 
-          console.log("updating similarities");
-
           setSimilarities(newSimilarities);
           setAllLabels([...embedStore.allValidEmbeddings.keys()]);
         },
       ),
-
     [],
   );
 
