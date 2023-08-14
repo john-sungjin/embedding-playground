@@ -24,6 +24,17 @@ function namesToKey(i: string, j: string) {
   return `${i},${j}`;
 }
 
+function getKeyOrder<K, V>(map: Map<K, V>, targetKey: K): number | null {
+  let order = 0;
+  for (let key of map.keys()) {
+    if (key === targetKey) {
+      return order;
+    }
+    order++;
+  }
+  return null; // Key not found in the map
+}
+
 export const SimilarityMatrix: React.FC = observer(() => {
   const [similarities, setSimilarities] = useState<Map<string, number>>(
     new Map(),
@@ -74,6 +85,13 @@ export const SimilarityMatrix: React.FC = observer(() => {
   const { rectangles, xScale, yScale } = useMemo(() => {
     const data = Array.from(similarities.entries()).map(([key, value]) => {
       const [source, target] = key.split(",");
+      // if source comes after target in allValidEmbeddings, then we need to swap them
+      if (
+        getKeyOrder(embedStore.allValidEmbeddings, source)! >
+        getKeyOrder(embedStore.allValidEmbeddings, target)!
+      ) {
+        return { source: target, target: source, value };
+      }
       return { source, target, value };
     });
 
@@ -93,8 +111,6 @@ export const SimilarityMatrix: React.FC = observer(() => {
           : `${embedding.expression}`,
       ),
     );
-
-    console.log("Labels: ", labels);
 
     const xScale = d3
       .scaleBand(labels.values(), [0, chartDims.boundedWidth])
