@@ -74,7 +74,7 @@ export const MathEmbeddingInput = observer(
             onChange={(e) => {
               setRawExpression(e.target.value);
             }}
-            className="shadow-none"
+            className="font-mono shadow-none"
           />
         </div>
         {/* MATH EMBEDDING INPUT END */}
