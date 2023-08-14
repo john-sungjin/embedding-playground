@@ -20,16 +20,20 @@ import { Label } from "@/components/ui/label";
 import { observer } from "mobx-react-lite";
 
 const models: { value: ModelName; label: string }[] = [
-  { value: "hkunlp/instructor-large", label: "Instructor Large" },
-  { value: "hkunlp/instructor-xl", label: "Instructor XL" },
-  { value: "thenlper/gte-large", label: "GTE Large" },
-  {
-    value: "Salesforce/codet5p-110m-embedding",
-    label: "Salesforce CodeT5+ 100m",
-  },
   {
     value: "text-embedding-ada-002",
     label: "OpenAI Ada v2",
+  },
+  { value: "thenlper/gte-large", label: "GTE Large" },
+  {
+    value: "sentence-transformers/all-mpnet-base-v2",
+    label: "All MPNet Base v2",
+  },
+  { value: "hkunlp/instructor-large", label: "Instructor Large" },
+  { value: "hkunlp/instructor-xl", label: "Instructor XL" },
+  {
+    value: "Salesforce/codet5p-110m-embedding",
+    label: "Salesforce CodeT5+ 110m",
   },
 ];
 export const INSTRUCTION_MODELS = new Set([

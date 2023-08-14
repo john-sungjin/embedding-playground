@@ -40,7 +40,8 @@
                 "thenlper/gte-large",
                 "Salesforce/codet5p-110m-embedding",
                 "Salesforce/codet5p-2b",
-                "text-embedding-ada-002"
+                "text-embedding-ada-002",
+                "sentence-transformers/all-mpnet-base-v2"
               ],
               "type": "string",
               "title": "Embed Model Name"

@@ -27,12 +27,16 @@ Models = Literal[
     "Salesforce/codet5p-110m-embedding",
     "Salesforce/codet5p-2b",
     "text-embedding-ada-002",
+    "sentence-transformers/all-mpnet-base-v2",
 ]
 INSTRUCTOR_MODELS = {
     "hkunlp/instructor-xl",
     "hkunlp/instructor-large",
 }
-GTE_LARGE = "thenlper/gte-large"
+SENTENCE_TRANSFORMERS_MODELS = {
+    "thenlper/gte-large",
+    "sentence-transformers/all-mpnet-base-v2",
+}
 
 
 class GenerateEmbeddingResponse(BaseModel):
@@ -96,8 +100,8 @@ def generate_embedding(
             convert_to_numpy=False,
         )[0]
 
-    elif embed_model_name == GTE_LARGE:
-        model = SentenceTransformer(GTE_LARGE)
+    elif embed_model_name in SENTENCE_TRANSFORMERS_MODELS:
+        model = SentenceTransformer(embed_model_name)
 
         embedding = model.encode([text], convert_to_numpy=False)[0]
     elif embed_model_name == "Salesforce/codet5p-110m-embedding":
