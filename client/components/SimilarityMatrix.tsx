@@ -35,6 +35,8 @@ function getKeyOrder<K, V>(map: Map<K, V>, targetKey: K): number | null {
   return null; // Key not found in the map
 }
 
+const MAX_LABEL_LENGTH = 12;
+
 export const SimilarityMatrix: React.FC = observer(() => {
   const [similarities, setSimilarities] = useState<Map<string, number>>(
     new Map(),
@@ -73,8 +75,8 @@ export const SimilarityMatrix: React.FC = observer(() => {
   const chartSettings = {
     width: 600,
     height: 600,
-    marginTop: 100,
-    marginRight: 100,
+    marginTop: 5,
+    marginRight: 5,
     marginBottom: 100,
     marginLeft: 100,
   };
@@ -119,7 +121,12 @@ export const SimilarityMatrix: React.FC = observer(() => {
       .scaleBand(labels.values(), [0, chartDims.boundedHeight])
       .paddingInner(0.05);
     const colorScale = d3
-      .scaleSequential(d3.interpolateBlues)
+      .scaleSequential(
+        d3.interpolateHsl(
+          d3.rgb("rgba(255, 192, 203, 0.75)"),
+          d3.rgb("rgba(65, 105, 225, 0.75)"),
+        ),
+      )
       .domain([minScale, maxScale]);
 
     const rectangles = data.map(({ source, target, value }) => {
@@ -135,122 +142,120 @@ export const SimilarityMatrix: React.FC = observer(() => {
   }, [similarities, chartDims]);
 
   return (
-    <div>
-      <h3>Similarity Matrix</h3>
-      {/* HEATMAP START */}
-      <div ref={chartRef}>
-        <svg
-          width={chartDims.width}
-          height={chartDims.height}
-          className="border"
-          overflow="visible"
+    <div ref={chartRef}>
+      <svg
+        width={chartDims.width}
+        height={chartDims.height}
+        className="rounded border bg-white"
+        overflow="visible"
+      >
+        <g
+          transform={`translate(${chartDims.marginLeft}, ${chartDims.marginTop})`}
         >
-          <g
-            transform={`translate(${chartDims.marginLeft}, ${chartDims.marginTop})`}
-          >
-            {rectangles.map(
-              ({ x, y, width, height, color, source, target, value }) => {
-                const embedding1 = embedStore.allValidEmbeddings.get(source)!;
-                const embedding2 = embedStore.allValidEmbeddings.get(target)!;
+          {rectangles.map(
+            ({ x, y, width, height, color, source, target, value }) => {
+              const embedding1 = embedStore.allValidEmbeddings.get(source)!;
+              const embedding2 = embedStore.allValidEmbeddings.get(target)!;
 
-                const embedding1Text =
-                  "expression" in embedding1
-                    ? `${source}: ${embedding1.expression}`
-                    : `${source}: ${embedding1.instruction + embedding1.text}`;
-                const embedding2Text =
-                  "expression" in embedding2
-                    ? `${target}: ${embedding2.expression}`
-                    : `${target}: ${embedding2.instruction + embedding2.text}`;
+              const embedding1Text =
+                "expression" in embedding1
+                  ? `${source}: ${embedding1.expression}`
+                  : `${source}: ${embedding1.instruction + embedding1.text}`;
+              const embedding2Text =
+                "expression" in embedding2
+                  ? `${target}: ${embedding2.expression}`
+                  : `${target}: ${embedding2.instruction + embedding2.text}`;
 
-                return (
-                  <g key={`${x}_${y}`}>
-                    {/* Embedding HTML content inside SVG */}
-                    <rect
-                      x={x}
-                      y={y}
-                      width={width}
-                      height={height}
-                      fill={color}
-                    />
-                    <foreignObject
-                      x={x}
-                      y={y}
-                      width={width}
-                      height={height}
-                      overflow="visible"
-                    >
-                      <HoverCard openDelay={0} closeDelay={0}>
-                        <HoverCardTrigger asChild>
-                          <div className="w-full h-full" />
-                        </HoverCardTrigger>
-                        <HoverCardPortal>
-                          <HoverCardContent
-                            className="w-48 flex flex-col space-y-1 pointer-events-none"
-                            side={"top"}
-                          >
-                            <div className="px-2 py-1 font-mono text-sm bg-gray-100 rounded-md">
-                              {embedding1Text}
-                            </div>
-                            <div className="px-2 py-1 font-mono text-sm bg-gray-100 rounded-md">
-                              {embedding2Text}
-                            </div>
-                            <div className="truncate font-mono">
-                              {value.toFixed(4)}
-                            </div>
-                          </HoverCardContent>
-                        </HoverCardPortal>
-                      </HoverCard>
-                    </foreignObject>
-                  </g>
-                );
-              },
-            )}
-            <g transform={`translate(0, ${chartDims.boundedHeight})`}>
-              {xScale.domain().map((label) => {
-                let displayLabel = label;
-                if (label.length > 10) {
-                  displayLabel = label.slice(0, 10) + "...";
-                }
-
-                return (
-                  <text
-                    key={label}
-                    x={xScale(label)! + xScale.bandwidth() / 2}
-                    y={15}
-                    textAnchor="end"
-                    fontSize={12}
-                    transform={`rotate(-45, ${
-                      xScale(label)! + xScale.bandwidth() / 2
-                    }, 15)`}
+              return (
+                <g key={`${x}_${y}`}>
+                  {/* Embedding HTML content inside SVG */}
+                  <rect
+                    x={x}
+                    y={y}
+                    width={width}
+                    height={height}
+                    fill={color}
+                    rx={2}
+                  />
+                  <foreignObject
+                    x={x}
+                    y={y}
+                    width={width}
+                    height={height}
+                    overflow="visible"
                   >
-                    {displayLabel}
-                  </text>
-                );
-              })}
-            </g>
-            <g transform={`translate(-3, 0)`}>
-              {yScale.domain().map((label) => {
-                let displayLabel = label;
-                if (label.length > 10) {
-                  displayLabel = label.slice(0, 10) + "...";
-                }
-                return (
-                  <text
-                    key={label}
-                    x={-3}
-                    y={yScale(label)! + yScale.bandwidth() / 2}
-                    textAnchor="end"
-                    fontSize={12}
-                  >
-                    {displayLabel}
-                  </text>
-                );
-              })}
-            </g>
+                    <HoverCard openDelay={0} closeDelay={0}>
+                      <HoverCardTrigger asChild>
+                        <div className="h-full w-full" />
+                      </HoverCardTrigger>
+                      <HoverCardPortal>
+                        <HoverCardContent
+                          className="pointer-events-none flex w-48 flex-col space-y-1"
+                          side={"top"}
+                        >
+                          <div className="rounded-md bg-gray-100 px-2 py-1 font-mono text-sm">
+                            {embedding1Text}
+                          </div>
+                          <div className="rounded-md bg-gray-100 px-2 py-1 font-mono text-sm">
+                            {embedding2Text}
+                          </div>
+                          <div className="truncate font-mono">
+                            {value.toFixed(4)}
+                          </div>
+                        </HoverCardContent>
+                      </HoverCardPortal>
+                    </HoverCard>
+                  </foreignObject>
+                </g>
+              );
+            },
+          )}
+          <g transform={`translate(0, ${chartDims.boundedHeight})`}>
+            {xScale.domain().map((label) => {
+              let displayLabel = label;
+              if (label.length > MAX_LABEL_LENGTH) {
+                displayLabel = label.slice(0, MAX_LABEL_LENGTH) + "...";
+              }
+
+              return (
+                <text
+                  key={label}
+                  x={xScale(label)! + xScale.bandwidth() / 2}
+                  y={15}
+                  textAnchor="end"
+                  fontSize={12}
+                  transform={`rotate(-45, ${
+                    xScale(label)! + xScale.bandwidth() / 2
+                  }, 15)`}
+                  className="font-sans"
+                >
+                  {displayLabel}
+                </text>
+              );
+            })}
           </g>
-        </svg>
-      </div>
-      {/* HEATMAP END */}
+          <g transform={`translate(-3, 0)`}>
+            {yScale.domain().map((label) => {
+              let displayLabel = label;
+              if (label.length > MAX_LABEL_LENGTH) {
+                displayLabel = label.slice(0, MAX_LABEL_LENGTH) + "...";
+              }
+              return (
+                <text
+                  key={label}
+                  x={-3}
+                  y={yScale(label)! + yScale.bandwidth() / 2}
+                  textAnchor="end"
+                  fontSize={12}
+                  className="font-sans"
+                >
+                  {displayLabel}
+                </text>
+              );
+            })}
+          </g>
+        </g>
+      </svg>
     </div>
   );
 });

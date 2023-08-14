@@ -48,23 +48,20 @@ export const MathEmbeddingInput = observer(
     );
 
     return (
-      <div className="flex-col space-y-2">
+      <div className="w-full flex-col space-y-2 rounded border bg-white p-2 shadow-sm">
         {/* HEADER START */}
-        <div className="flex flex-row">
-          <h5 className="flex h-8 w-36 items-center truncate rounded-md bg-gray-100 px-2 font-mono text-sm text-gray-600">
-            {name} ={" "}
-            {embedding.vector
-              ? embedding.vector.map((e) => e.toFixed(5)).join(", ")
-              : "null"}
+        <div className="mb-1 flex w-full items-center">
+          <h5 className="flex items-center truncate px-2 font-mono text-xs font-semibold text-gray-600">
+            {name}
           </h5>
           <Button
             onClick={() => {
               embedStore.deleteMathEmbedding(name);
             }}
-            className="ml-auto flex h-8 w-8 items-center justify-center border-red-300 hover:bg-red-100"
-            variant="outline"
+            className="group ml-auto h-6 w-6 rounded p-0"
+            variant="ghost"
           >
-            <TrashIcon className="h-4 w-4 shrink-0 text-red-500" />
+            <TrashIcon className="h-4 w-4 shrink-0 text-gray-500 group-hover:text-red-500" />
           </Button>
         </div>
         {/* HEADER END */}
@@ -77,6 +74,7 @@ export const MathEmbeddingInput = observer(
             onChange={(e) => {
               setRawExpression(e.target.value);
             }}
+            className="shadow-none"
           />
         </div>
         {/* MATH EMBEDDING INPUT END */}

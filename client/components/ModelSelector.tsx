@@ -59,7 +59,7 @@ export const ModelSelector = observer(
               variant="outline"
               role="combobox"
               aria-expanded={open}
-              className="w-72 justify-between"
+              className="w-full justify-between bg-white"
             >
               {models.find((m) => m.value === model.name)?.label}
               <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
