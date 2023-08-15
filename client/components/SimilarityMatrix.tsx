@@ -141,7 +141,7 @@ export const SimilarityMatrix: React.FC = observer(() => {
         const y = yScale(labels.get(key)!);
         const width = xScale.bandwidth();
         const height = yScale.bandwidth();
-        const color = "rgba(0, 0, 0, 0.1)";
+        const color = "rgba(243, 244, 246)";
         return {
           x,
           y,
