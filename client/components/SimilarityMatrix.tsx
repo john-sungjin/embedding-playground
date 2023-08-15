@@ -1,10 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useMemo, useState } from "react";
-import {
-  MathEmbedding,
-  TextEmbedding,
-  embedStore,
-} from "@/components/Embeddings";
+import { TextEmbedding, embedStore } from "@/components/Embeddings";
 import { cosineSimilarity } from "@/app/math";
 import { useChartDimensions } from "@/components/useChartDimensions";
 import * as d3 from "d3";
@@ -75,8 +71,8 @@ export const SimilarityMatrix: React.FC = observer(() => {
   const chartSettings = {
     width: 600,
     height: 600,
-    marginTop: 5,
-    marginRight: 5,
+    marginTop: 20,
+    marginRight: 20,
     marginBottom: 100,
     marginLeft: 100,
   };
@@ -123,13 +119,13 @@ export const SimilarityMatrix: React.FC = observer(() => {
     const colorScale = d3
       .scaleSequential(
         d3.interpolateHsl(
-          d3.rgb("rgba(255, 192, 203, 0.75)"),
-          d3.rgb("rgba(65, 105, 225, 0.75)"),
+          d3.rgb("rgba(255, 192, 203, 0.25)"),
+          d3.rgb("rgba(65, 80, 225, 0.90)"),
         ),
       )
       .domain([minScale, maxScale]);
 
-    const rectangles = data.map(({ source, target, value }) => {
+    let rectangles = data.map(({ source, target, value }) => {
       const x = xScale(labels.get(source)!);
       const y = yScale(labels.get(target)!);
       const width = xScale.bandwidth();
@@ -137,6 +133,27 @@ export const SimilarityMatrix: React.FC = observer(() => {
       const color = colorScale(value);
       return { x, y, width, height, color, source, target, value };
     });
+
+    // add gray rectangles where source === target
+    rectangles = rectangles.concat(
+      Array.from(labels.keys()).map((key) => {
+        const x = xScale(labels.get(key)!);
+        const y = yScale(labels.get(key)!);
+        const width = xScale.bandwidth();
+        const height = yScale.bandwidth();
+        const color = "rgba(0, 0, 0, 0.1)";
+        return {
+          x,
+          y,
+          width,
+          height,
+          color,
+          source: key,
+          target: key,
+          value: 1,
+        };
+      }),
+    );
 
     return { rectangles, xScale, yScale };
   }, [similarities, chartDims]);
@@ -193,14 +210,14 @@ export const SimilarityMatrix: React.FC = observer(() => {
                           className="pointer-events-none flex w-48 flex-col space-y-1"
                           side={"top"}
                         >
-                          <div className="rounded-md bg-gray-100 px-2 py-1 font-mono text-sm">
+                          <div className="break-words rounded-md bg-gray-100 px-2 py-1 font-mono text-sm">
                             {embedding1Text}
                           </div>
-                          <div className="rounded-md bg-gray-100 px-2 py-1 font-mono text-sm">
+                          <div className="break-words rounded-md bg-gray-100 px-2 py-1 font-mono text-sm">
                             {embedding2Text}
                           </div>
                           <div className="truncate font-mono">
-                            {value.toFixed(4)}
+                            {value.toFixed(6)}
                           </div>
                         </HoverCardContent>
                       </HoverCardPortal>

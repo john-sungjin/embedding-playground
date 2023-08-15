@@ -79,7 +79,7 @@ export const TextEmbeddingInput = observer(
     }, [name, isLoading, isFetching, isEmpty, data, isEditing]);
 
     return (
-      <div className="w-full flex-col rounded border bg-white p-2 shadow-sm">
+      <div className="group w-full flex-col rounded border bg-white p-2 shadow-sm focus-within:focus-within:bg-white hover:bg-gray-50">
         {/* HEADER START */}
         <div className="mb-1 flex w-full items-center">
           <div className="flex items-center space-x-1">
@@ -94,17 +94,13 @@ export const TextEmbeddingInput = observer(
               <div className="flex h-6 w-6 items-center justify-center rounded bg-yellow-100">
                 <ExclamationTriangleIcon className="h-3.5 w-3.5 text-yellow-700" />
               </div>
-            ) : (
-              <div className="flex h-6 w-6 items-center justify-center rounded bg-green-100">
-                <CheckIcon className="h-4 w-4 text-green-700" />
-              </div>
-            )}
+            ) : null}
           </div>
           <Button
             onClick={() => {
               embedStore.deleteTextEmbedding(name);
             }}
-            className="group ml-auto h-6 w-6 rounded p-0"
+            className="invisible ml-auto h-6 w-6 rounded p-0 group-hover:visible"
             variant="ghost"
           >
             <TrashIcon className="h-4 w-4 shrink-0 text-gray-500 group-hover:text-red-500" />

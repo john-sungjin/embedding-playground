@@ -20,7 +20,7 @@ const Home = observer(() => {
   return (
     <main className="flex h-screen">
       {/* SIDEBAR START */}
-      <div className="flex h-full w-96 flex-col space-y-8 overflow-y-auto border-r bg-gray-50 p-4">
+      <div className="flex h-full w-96 shrink-0 flex-col space-y-8 overflow-y-auto border-r bg-gray-50 p-4">
         <h1 className="font-semibold">Embedding Playground</h1>
         {/* TEXT EMBEDDINGS START */}
         <div className="flex flex-col space-y-4">
