@@ -11,6 +11,7 @@ import {
   HoverCardContent,
 } from "@/components/ui/hover-card";
 import { HoverCardPortal } from "@radix-ui/react-hover-card";
+import { Button } from "./ui/button";
 
 function namesToKey(i: string, j: string) {
   // make i < j
@@ -37,6 +38,8 @@ export const SimilarityMatrix: React.FC = observer(() => {
   const [similarities, setSimilarities] = useState<Map<string, number>>(
     new Map(),
   );
+
+  const [showNumbers, setShowNumbers] = useState(false);
 
   // Track embedding values and update when they change
   useEffect(
@@ -126,8 +129,8 @@ export const SimilarityMatrix: React.FC = observer(() => {
       .domain([minScale, maxScale]);
 
     let rectangles = data.map(({ source, target, value }) => {
-      const x = xScale(labels.get(source)!);
-      const y = yScale(labels.get(target)!);
+      const x = xScale(labels.get(source)!)!;
+      const y = yScale(labels.get(target)!)!;
       const width = xScale.bandwidth();
       const height = yScale.bandwidth();
       const color = colorScale(value);
@@ -137,8 +140,8 @@ export const SimilarityMatrix: React.FC = observer(() => {
     // add gray rectangles where source === target
     rectangles = rectangles.concat(
       Array.from(labels.keys()).map((key) => {
-        const x = xScale(labels.get(key)!);
-        const y = yScale(labels.get(key)!);
+        const x = xScale(labels.get(key)!)!;
+        const y = yScale(labels.get(key)!)!;
         const width = xScale.bandwidth();
         const height = yScale.bandwidth();
         const color = "rgba(243, 244, 246)";
@@ -159,7 +162,14 @@ export const SimilarityMatrix: React.FC = observer(() => {
   }, [similarities, chartDims]);
 
   return (
-    <div ref={chartRef}>
+    <div ref={chartRef} className="relative w-fit">
+      <Button
+        className="absolute right-0 top-0 m-2"
+        onClick={() => setShowNumbers(!showNumbers)}
+        variant="outline"
+      >
+        {showNumbers ? "Hide numbers" : "Show numbers"}
+      </Button>
       <svg
         width={chartDims.width}
         height={chartDims.height}
@@ -194,6 +204,19 @@ export const SimilarityMatrix: React.FC = observer(() => {
                     fill={color}
                     rx={2}
                   />
+                  {showNumbers && (
+                    <text
+                      x={x + width / 2}
+                      y={y + height / 2}
+                      dominantBaseline="middle"
+                      textAnchor="middle"
+                      fontSize={12}
+                      fontWeight="bold"
+                      fill="black"
+                    >
+                      {value.toFixed(4)}
+                    </text>
+                  )}
                   <foreignObject
                     x={x}
                     y={y}
