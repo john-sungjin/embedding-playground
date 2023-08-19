@@ -176,12 +176,12 @@ export const SimilarityMatrix: React.FC = observer(() => {
 
               const embedding1Text =
                 "expression" in embedding1
-                  ? `${source}: ${embedding1.expression}`
-                  : `${source}: ${embedding1.instruction + embedding1.text}`;
+                  ? `${embedding1.expression}`
+                  : `${embedding1.instruction + embedding1.text}`;
               const embedding2Text =
                 "expression" in embedding2
-                  ? `${target}: ${embedding2.expression}`
-                  : `${target}: ${embedding2.instruction + embedding2.text}`;
+                  ? `${embedding2.expression}`
+                  : `${embedding2.instruction + embedding2.text}`;
 
               return (
                 <g key={`${x}_${y}`}>
@@ -207,17 +207,28 @@ export const SimilarityMatrix: React.FC = observer(() => {
                       </HoverCardTrigger>
                       <HoverCardPortal>
                         <HoverCardContent
-                          className="pointer-events-none flex w-48 flex-col space-y-1"
+                          className="pointer-events-none flex w-60 flex-col space-y-1"
                           side={"top"}
                         >
-                          <div className="break-words rounded-md bg-gray-100 px-2 py-1 font-mono text-sm">
-                            {embedding1Text}
-                          </div>
-                          <div className="break-words rounded-md bg-gray-100 px-2 py-1 font-mono text-sm">
-                            {embedding2Text}
-                          </div>
-                          <div className="truncate font-mono">
-                            {value.toFixed(6)}
+                          <div className="grid grid-cols-6 items-start gap-1">
+                            <div className="col-span-1 py-2 font-mono text-xs text-gray-600">
+                              {source}
+                            </div>
+                            <div className="col-span-5 break-words rounded-md border px-2 py-1 text-sm">
+                              {embedding1Text}
+                            </div>
+                            <div className="col-span-1 py-2 font-mono text-xs text-gray-600">
+                              {target}
+                            </div>
+                            <div className="col-span-5 break-words rounded-md border px-2 py-1 text-sm">
+                              {embedding2Text}
+                            </div>
+                            <div className="col-span-1 py-2 font-mono text-sm text-gray-600">
+                              sim
+                            </div>
+                            <div className="col-span-5 truncate px-2 py-2 font-mono text-sm">
+                              {value.toFixed(6)}
+                            </div>
                           </div>
                         </HoverCardContent>
                       </HoverCardPortal>

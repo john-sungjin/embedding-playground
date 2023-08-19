@@ -41,7 +41,7 @@ const Home = observer(() => {
                 variant="outline"
                 className="h-8 w-8 bg-white p-2"
               >
-                <PlusIcon className="h-4 w-4 text-gray-700" />
+                <PlusIcon className="h-4 w-4 text-gray-600" />
               </Button>
             </div>
           </div>
@@ -64,7 +64,7 @@ const Home = observer(() => {
                 variant="outline"
                 className="h-8 w-8 bg-white p-2"
               >
-                <PlusIcon className="h-4 w-4 text-gray-700" />
+                <PlusIcon className="h-4 w-4 text-gray-600" />
               </Button>
             </div>
           </div>
