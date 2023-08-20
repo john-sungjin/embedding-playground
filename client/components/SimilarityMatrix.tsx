@@ -33,6 +33,7 @@ function getKeyOrder<K, V>(map: Map<K, V>, targetKey: K): number | null {
 }
 
 const MAX_LABEL_LENGTH = 12;
+const MAX_TOOLTIP_LENGTH = 150;
 
 export const SimilarityMatrix: React.FC = observer(() => {
   const [similarities, setSimilarities] = useState<Map<string, number>>(
@@ -184,14 +185,23 @@ export const SimilarityMatrix: React.FC = observer(() => {
               const embedding1 = embedStore.allValidEmbeddings.get(source)!;
               const embedding2 = embedStore.allValidEmbeddings.get(target)!;
 
-              const embedding1Text =
+              let embedding1Text =
                 "expression" in embedding1
                   ? `${embedding1.expression}`
                   : `${embedding1.instruction + embedding1.text}`;
-              const embedding2Text =
+              let embedding2Text =
                 "expression" in embedding2
                   ? `${embedding2.expression}`
                   : `${embedding2.instruction + embedding2.text}`;
+
+              if (embedding1Text.length > MAX_TOOLTIP_LENGTH) {
+                embedding1Text =
+                  embedding1Text.slice(0, MAX_TOOLTIP_LENGTH) + "...";
+              }
+              if (embedding2Text.length > MAX_TOOLTIP_LENGTH) {
+                embedding2Text =
+                  embedding2Text.slice(0, MAX_TOOLTIP_LENGTH) + "...";
+              }
 
               return (
                 <g key={`${x}_${y}`}>
@@ -234,6 +244,12 @@ export const SimilarityMatrix: React.FC = observer(() => {
                           side={"top"}
                         >
                           <div className="grid grid-cols-6 items-start gap-1">
+                            <div className="col-span-1 py-2 font-mono text-sm text-gray-600">
+                              sim
+                            </div>
+                            <div className="col-span-5 truncate px-2 py-2 font-mono text-sm">
+                              {value.toFixed(6)}
+                            </div>
                             <div className="col-span-1 py-2 font-mono text-xs text-gray-600">
                               {source}
                             </div>
@@ -245,12 +261,6 @@ export const SimilarityMatrix: React.FC = observer(() => {
                             </div>
                             <div className="col-span-5 break-words rounded-md border px-2 py-1 text-sm">
                               {embedding2Text}
-                            </div>
-                            <div className="col-span-1 py-2 font-mono text-sm text-gray-600">
-                              sim
-                            </div>
-                            <div className="col-span-5 truncate px-2 py-2 font-mono text-sm">
-                              {value.toFixed(6)}
                             </div>
                           </div>
                         </HoverCardContent>
