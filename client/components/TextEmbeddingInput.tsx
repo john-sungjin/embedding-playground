@@ -12,6 +12,7 @@ import {
   SymbolIcon,
   ExclamationTriangleIcon,
   CheckCircledIcon,
+  CheckIcon,
 } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { INSTRUCTION_MODELS } from "@/components/ModelSelector";
@@ -78,43 +79,36 @@ export const TextEmbeddingInput = observer(
     }, [name, isLoading, isFetching, isEmpty, data, isEditing]);
 
     return (
-      <div className="flex-col space-y-2">
+      <div className="group w-full flex-col rounded border bg-white p-2 shadow-sm focus-within:focus-within:bg-white hover:bg-gray-50">
         {/* HEADER START */}
-        <div className="flex w-full">
-          <div className="flex items-center space-x-2">
-            <h5 className="flex h-8 w-36 items-center truncate rounded-md bg-gray-100 px-2 font-mono text-sm text-gray-600">
-              {name} ={" "}
-              {embedding.vector
-                ? embedding.vector.map((e) => e.toFixed(5)).join(", ")
-                : "null"}
+        <div className="mb-1 flex w-full items-center">
+          <div className="flex items-center space-x-1">
+            <h5 className="flex items-center truncate px-2 font-mono text-xs font-semibold text-gray-600">
+              {name}
             </h5>
             {embedding.isLoading ? (
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-100">
-                <SymbolIcon className="h-4 w-4 animate-spin text-blue-700" />
+              <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-100">
+                <SymbolIcon className="h-3 w-3 animate-spin text-blue-700" />
               </div>
             ) : embedding.isOutdated || embedding.vector === null ? (
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-yellow-100">
-                <ExclamationTriangleIcon className="h-4 w-4 text-yellow-700" />
+              <div className="flex h-6 w-6 items-center justify-center rounded bg-yellow-100">
+                <ExclamationTriangleIcon className="h-3.5 w-3.5 text-yellow-700" />
               </div>
-            ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-green-100">
-                <CheckCircledIcon className="h-4 w-4 text-green-700" />
-              </div>
-            )}
+            ) : null}
           </div>
           <Button
             onClick={() => {
               embedStore.deleteTextEmbedding(name);
             }}
-            className="ml-auto flex h-8 w-8 items-center justify-center border-red-300 hover:bg-red-100"
-            variant="outline"
+            className="invisible ml-auto h-6 w-6 rounded p-0 group-hover:visible"
+            variant="ghost"
           >
-            <TrashIcon className="h-4 w-4 shrink-0 text-red-500" />
+            <TrashIcon className="h-4 w-4 shrink-0 text-gray-500 group-hover:text-red-500" />
           </Button>
         </div>
         {/* HEADER END */}
         {/* TEXT EMBEDDING INPUT START */}
-        <div className="flex flex-row space-x-4">
+        <div className="flex flex-row space-x-2">
           {INSTRUCTION_MODELS.has(model.name) && (
             <Textarea
               placeholder="Enter instruction..."
@@ -122,6 +116,7 @@ export const TextEmbeddingInput = observer(
               onChange={(e) => {
                 setRawInstruction(e.target.value);
               }}
+              className="shadow-none"
             />
           )}
           <Textarea
@@ -130,6 +125,7 @@ export const TextEmbeddingInput = observer(
             onChange={(e) => {
               setRawText(e.target.value);
             }}
+            className="shadow-none"
           />
         </div>
         {/* TEXT EMBEDDING INPUT END */}
