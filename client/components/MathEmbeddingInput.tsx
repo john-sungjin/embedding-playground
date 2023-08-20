@@ -48,7 +48,7 @@ export const MathEmbeddingInput = observer(
     );
 
     return (
-      <div className="w-full flex-col space-y-2 rounded border bg-white p-2 shadow-sm">
+      <div className="group w-full flex-col space-y-2 rounded border bg-white p-2 shadow-sm">
         {/* HEADER START */}
         <div className="mb-1 flex w-full items-center">
           <h5 className="flex items-center truncate px-2 font-mono text-xs font-semibold text-gray-600">
@@ -58,7 +58,7 @@ export const MathEmbeddingInput = observer(
             onClick={() => {
               embedStore.deleteMathEmbedding(name);
             }}
-            className="group ml-auto h-6 w-6 rounded p-0"
+            className="invisible ml-auto h-6 w-6 rounded p-0 group-hover:visible"
             variant="ghost"
           >
             <TrashIcon className="h-4 w-4 shrink-0 text-gray-500 group-hover:text-red-500" />
