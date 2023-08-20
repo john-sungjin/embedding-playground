@@ -10,6 +10,7 @@ import { observer } from "mobx-react-lite";
 import { useState } from "react";
 import { ModelSelector } from "@/components/ModelSelector";
 import { useLocalStorage } from "usehooks-ts";
+import { Pca } from "@/components/Pca";
 
 const Home = observer(() => {
   // The model config is stored in local storage so that it persists across
@@ -68,6 +69,8 @@ const Home = observer(() => {
       {/* VIEW START */}
       <div className="h-full w-full">
         <SimilarityMatrix />
+
+        <Pca />
       </div>
       {/* VIEW END */}
     </main>
