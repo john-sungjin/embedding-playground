@@ -12,12 +12,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import {
+  CaretSortIcon,
+  CheckIcon,
+  InfoCircledIcon,
+} from "@radix-ui/react-icons";
 import { useState } from "react";
 import { ModelConfig, ModelName } from "@/components/Embeddings";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { observer } from "mobx-react-lite";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 const models: { value: ModelName; label: string }[] = [
   {
@@ -98,7 +103,20 @@ export const ModelSelector = observer(
         </Popover>
         {OPENAI_MODELS.has(model.name) && (
           <>
-            <Label>API Key</Label>
+            <Label>
+              API Key{" "}
+              <Tooltip>
+                <TooltipTrigger>
+                  <InfoCircledIcon className="inline-block" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-sm">
+                    API requests are sent directly to OpenAPI from the browser.
+                    Our server does not ever see this API key.
+                  </p>
+                </TooltipContent>{" "}
+              </Tooltip>
+            </Label>
             <Input
               placeholder="Enter API key..."
               value={model.api_key ?? ""}
