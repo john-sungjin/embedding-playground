@@ -5,7 +5,7 @@ import { MathEmbeddingInput } from "@/components/MathEmbeddingInput";
 import { SimilarityMatrix } from "@/components/SimilarityMatrix";
 import { TextEmbeddingInput } from "@/components/TextEmbeddingInput";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "@radix-ui/react-icons";
+import { GitHubLogoIcon, PlusIcon } from "@radix-ui/react-icons";
 import { observer } from "mobx-react-lite";
 import { ModelSelector } from "@/components/ModelSelector";
 import { useLocalStorage } from "usehooks-ts";
@@ -22,55 +22,68 @@ const Home = observer(() => {
     <main className="flex h-screen">
       {/* SIDEBAR START */}
       <div className="flex h-full w-96 shrink-0 flex-col space-y-8 overflow-y-auto border-r bg-gray-50 p-4">
-        <h1 className="font-semibold">Embedding Playground</h1>
-        {/* TEXT EMBEDDINGS START */}
-        <div className="flex flex-col space-y-4">
-          <h3 className="text-sm">Text</h3>
-          <ModelSelector model={model} setModel={setModel} />
+        <div className="flex-grow">
+          <h1 className="pb-2 font-semibold">Embedding Playground</h1>
+          {/* TEXT EMBEDDINGS START */}
           <div className="flex flex-col space-y-4">
-            {Array.from(embedStore.textEmbeddings).map(([name, embedding]) => (
-              <TextEmbeddingInput
-                key={name}
-                name={name}
-                model={model}
-                embedding={embedding}
-              />
-            ))}
-            <div className="flex items-center justify-center">
-              <Button
-                onClick={embedStore.initTextEmbedding}
-                variant="outline"
-                className="h-8 w-8 bg-white p-2"
-              >
-                <PlusIcon className="h-4 w-4 text-gray-600" />
-              </Button>
+            <h3 className="text-sm">Text</h3>
+            <ModelSelector model={model} setModel={setModel} />
+            <div className="flex flex-col space-y-4">
+              {Array.from(embedStore.textEmbeddings).map(
+                ([name, embedding]) => (
+                  <TextEmbeddingInput
+                    key={name}
+                    name={name}
+                    model={model}
+                    embedding={embedding}
+                  />
+                ),
+              )}
+              <div className="flex items-center justify-center">
+                <Button
+                  onClick={embedStore.initTextEmbedding}
+                  variant="outline"
+                  className="h-8 w-8 bg-white p-2"
+                >
+                  <PlusIcon className="h-4 w-4 text-gray-600" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-        {/* TEXT EMBEDDINGS END */}
-        {/* MATH EMBEDDINGS START */}
-        <div className="flex flex-col space-y-4">
-          <h3 className="text-sm">Formulas</h3>
+          {/* TEXT EMBEDDINGS END */}
+          {/* MATH EMBEDDINGS START */}
           <div className="flex flex-col space-y-4">
-            {Array.from(embedStore.mathEmbeddings).map(([name, embedding]) => (
-              <MathEmbeddingInput
-                key={name}
-                name={name}
-                embedding={embedding}
-              />
-            ))}
-            <div className="flex items-center justify-center">
-              <Button
-                onClick={embedStore.initMathEmbedding}
-                variant="outline"
-                className="h-8 w-8 bg-white p-2"
-              >
-                <PlusIcon className="h-4 w-4 text-gray-600" />
-              </Button>
+            <h3 className="text-sm">Formulas</h3>
+            <div className="flex flex-col space-y-4">
+              {Array.from(embedStore.mathEmbeddings).map(
+                ([name, embedding]) => (
+                  <MathEmbeddingInput
+                    key={name}
+                    name={name}
+                    embedding={embedding}
+                  />
+                ),
+              )}
+              <div className="flex items-center justify-center">
+                <Button
+                  onClick={embedStore.initMathEmbedding}
+                  variant="outline"
+                  className="h-8 w-8 bg-white p-2"
+                >
+                  <PlusIcon className="h-4 w-4 text-gray-600" />
+                </Button>
+              </div>
             </div>
+            {/* MATH EMBEDDINGS END */}
           </div>
-          {/* MATH EMBEDDINGS END */}
         </div>
+        <footer className="mt-auto pt-4 text-center text-sm">
+          <a href="https://github.com/john-sungjin/embedding-playground">
+            <GitHubLogoIcon className="inline-block" width={18} height={18} />
+          </a>{" "}
+          by <a href="https://twitter.com/john_sungjin">John Kim</a> and{" "}
+          <a href="https://harshal.sheth.io/about">Harshal Sheth</a>
+        </footer>
       </div>
       {/* SIDEBAR END */}
       {/* VIEW START */}
