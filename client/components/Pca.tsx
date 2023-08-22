@@ -13,12 +13,17 @@ export const Pca: React.FC = observer(() => {
     if (!vectors.size) {
       return null;
     }
-    const vectorsSimple = [...vectors.values()].map((v) => v.vector!);
-    return new PCA(vectorsSimple);
+    try {
+      const vectorsSimple = [...vectors.values()].map((v) => v.vector!);
+      return new PCA(vectorsSimple);
+    } catch (err) {
+      console.log(err);
+      return null;
+    }
   }, [vectors]);
 
   const pred = useMemo(() => {
-    if (!pca) return null;
+    if (!pca) return new Map();
 
     try {
       const vectorsSimple = [...vectors.values()].map((v) => v.vector!);
@@ -31,16 +36,11 @@ export const Pca: React.FC = observer(() => {
       );
     } catch (err) {
       console.log(err);
-      return null;
+      return new Map();
     }
   }, [pca, vectors]);
 
   useEffect(() => {
-    if (!pred) {
-      return;
-    }
-    console.log(pred);
-
     const data = Array.from(pred).map(([k, v]) => {
       const embedding = vectors.get(k)!;
       const label =
@@ -95,12 +95,12 @@ export const Pca: React.FC = observer(() => {
     return () => plot.remove();
   }, [pred]);
 
-  if (vectors.size === 0 || !pca || !pred) {
-    return <div>PCA not available</div>;
-  }
+  const totalExplainedVariance = useMemo(() => {
+    if (!pca) return 0;
 
-  const explainedVariance = pca.getExplainedVariance();
-  const totalExplainedVariance = explainedVariance[0] + explainedVariance[1];
+    const explainedVariance = pca.getExplainedVariance();
+    return explainedVariance[0] + explainedVariance[1];
+  }, [pca]);
 
   return (
     <div className="flex flex-col">

@@ -75,19 +75,10 @@ const Home = observer(() => {
       {/* SIDEBAR END */}
       {/* VIEW START */}
       <div className="flex h-full w-full flex-col space-y-12 overflow-y-auto bg-gray-100 p-4">
-        {embedStore.allValidEmbeddings.size ? (
-          <>
-            <SimilarityMatrix />
-            <Pca />
-          </>
-        ) : (
-          <>
-            <p>
-              Welcome to the embeddings explorer! Add some text on the left, and
-              see similarity + PCA on the right.
-            </p>
-          </>
-        )}
+        <>
+          <SimilarityMatrix />
+          <Pca />
+        </>
       </div>
       {/* VIEW END */}
     </main>
