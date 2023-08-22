@@ -252,11 +252,6 @@ export class Embeddings {
     }
     return mergedEmbeddings;
   }
-
-  get pcaVectors() {
-    const embeddings = this.allValidEmbeddings;
-    return [...embeddings.values()].map((e) => e.vector!);
-  }
 }
 
 // TODO: move this to context or smth lol

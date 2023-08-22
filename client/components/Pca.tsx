@@ -7,16 +7,28 @@ import { useEffect, useMemo, useRef } from "react";
 export const Pca: React.FC = observer(() => {
   const pcaChartRef = useRef<HTMLDivElement>(null);
 
-  const vectors = embedStore.pcaVectors;
-  // TODO: we need labels for the vectors -> probably want a map
+  const vectors = embedStore.allValidEmbeddings;
 
   const pca = useMemo(() => {
-    return new PCA(vectors);
+    if (!vectors.size) {
+      return null;
+    }
+    const vectorsSimple = [...vectors.values()].map((v) => v.vector!);
+    return new PCA(vectorsSimple);
   }, [vectors]);
 
   const pred = useMemo(() => {
+    if (!pca) return null;
+
     try {
-      return pca.predict(vectors, { nComponents: 2 });
+      const vectorsSimple = [...vectors.values()].map((v) => v.vector!);
+      const pcaRawPreds = pca
+        .predict(vectorsSimple, { nComponents: 2 })
+        .to2DArray();
+
+      return new Map(
+        [...vectors.keys()].map((k, index) => [k, pcaRawPreds[index]]),
+      );
     } catch (err) {
       console.log(err);
       return null;
@@ -29,21 +41,26 @@ export const Pca: React.FC = observer(() => {
     }
     console.log(pred);
 
-    const data = pred.to2DArray().map((v) => ({
-      x: v[0],
-      y: v[1],
+    const data = Array.from(pred).map(([k, v]) => ({
+      label: k,
+      "Component 1": v[0],
+      "Component 2": v[1],
     }));
 
     const plot = Plot.plot({
       grid: true,
       nice: true,
-      x: { ticks: 10 },
+      title: "PCA",
       marks: [
-        Plot.dot(data, { x: "x", y: "y", stroke: "steelblue" }),
+        Plot.dot(data, {
+          x: "Component 1",
+          y: "Component 2",
+          stroke: "steelblue",
+        }),
         Plot.text(data, {
-          x: "x",
-          y: "y",
-          text: "name",
+          x: "Component 1",
+          y: "Component 2",
+          text: "label",
           textAnchor: "start",
           dx: 6,
         }),
@@ -54,18 +71,21 @@ export const Pca: React.FC = observer(() => {
     return () => plot.remove();
   }, [pred]);
 
-  if (vectors.length === 0 || !pca || !pred) {
+  if (vectors.size === 0 || !pca || !pred) {
     return <div>PCA not available</div>;
   }
+
+  const explainedVariance = pca.getExplainedVariance();
+  const totalExplainedVariance = explainedVariance[0] + explainedVariance[1];
 
   return (
     <>
       <div>
         Pca explained variance:
-        <pre>{JSON.stringify(pca.getExplainedVariance(), null, 2)}</pre>
-        <br />
+        <pre>{JSON.stringify(totalExplainedVariance)}</pre>
+        {/* <br />
         New vectors:
-        <pre>{JSON.stringify(pred, null, 2)}</pre>
+        <pre>{JSON.stringify(Array.from(pred), null, 2)}</pre> */}
       </div>
       <div ref={pcaChartRef} />
     </>
