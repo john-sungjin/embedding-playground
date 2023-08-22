@@ -1,8 +1,8 @@
 import { observer } from "mobx-react-lite";
 import { PCA } from "ml-pca";
-import { embedStore } from "./Embeddings";
 import * as Plot from "@observablehq/plot";
 import { useEffect, useMemo, useRef } from "react";
+import { TextEmbedding, embedStore } from "@/components/Embeddings";
 
 export const Pca: React.FC = observer(() => {
   const pcaChartRef = useRef<HTMLDivElement>(null);
@@ -41,29 +41,53 @@ export const Pca: React.FC = observer(() => {
     }
     console.log(pred);
 
-    const data = Array.from(pred).map(([k, v]) => ({
-      label: k,
-      "Component 1": v[0],
-      "Component 2": v[1],
-    }));
+    const data = Array.from(pred).map(([k, v]) => {
+      const embedding = vectors.get(k)!;
+      const label =
+        embedding instanceof TextEmbedding
+          ? `${embedding.instruction}${embedding.text}`
+          : `${embedding.expression}`;
+      return {
+        key: k,
+        label: label.length > 20 ? label.slice(0, 20) + "..." : label,
+        "Component 1": v[0],
+        "Component 2": v[1],
+      };
+    });
 
     const plot = Plot.plot({
       grid: true,
       nice: true,
       inset: 20,
+      margin: 40,
+      width: 600,
+      height: 600,
       marks: [
         Plot.dot(data, {
           x: "Component 1",
           y: "Component 2",
-          stroke: "steelblue",
+          fill: "rgba(65, 80, 225, 0.90)",
+          tip: true,
+          channels: {
+            name: "key",
+          },
         }),
         Plot.text(data, {
           x: "Component 1",
           y: "Component 2",
           text: "label",
           textAnchor: "start",
-          dx: 6,
+          fontSize: 12,
+          dx: 8,
         }),
+        // Plot.axisX({
+        //   labelAnchor: "center",
+        //   labelArrow: false,
+        // }),
+        // Plot.axisY({
+        //   labelAnchor: "center",
+        //   labelArrow: false,
+        // }),
       ],
     });
 
@@ -79,15 +103,24 @@ export const Pca: React.FC = observer(() => {
   const totalExplainedVariance = explainedVariance[0] + explainedVariance[1];
 
   return (
-    <>
-      <h2 className="pt-4 text-xl">PCA</h2>
-      <div className="pb-2">
-        Explained variance: {totalExplainedVariance}
-        {/*
+    <div className="flex flex-col">
+      <div className="mb-2 flex items-center space-x-3 px-1">
+        <h2 className="font-medium">PCA</h2>
+      </div>
+      <div
+        ref={pcaChartRef}
+        className="relative w-fit rounded border bg-white p-8"
+      >
+        <div className="absolute right-0 top-0 m-2 flex items-center space-x-2 rounded border bg-white px-2 py-1 text-sm">
+          <span className="font-mono text-gray-600">explained variance</span>
+          <span className="font-mono text-gray-700">
+            {totalExplainedVariance.toFixed(4)}
+          </span>
+          {/*
         New vectors:
         <pre>{JSON.stringify(Array.from(pred), null, 2)}</pre> */}
+        </div>
       </div>
-      <div ref={pcaChartRef} />
-    </>
+    </div>
   );
 });

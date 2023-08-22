@@ -74,9 +74,8 @@ const Home = observer(() => {
       </div>
       {/* SIDEBAR END */}
       {/* VIEW START */}
-      <div className="h-full w-full overflow-y-auto bg-gray-100 p-4">
+      <div className="flex h-full w-full flex-col space-y-12 overflow-y-auto bg-gray-100 p-4">
         <SimilarityMatrix />
-
         <Pca />
       </div>
       {/* VIEW END */}
