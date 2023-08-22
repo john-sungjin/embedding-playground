@@ -21,9 +21,9 @@ const Home = observer(() => {
   return (
     <main className="flex h-screen">
       {/* SIDEBAR START */}
-      <div className="flex h-full w-96 shrink-0 flex-col space-y-8 overflow-y-auto border-r bg-gray-50 p-4">
-        <div className="flex-grow">
-          <h1 className="pb-2 font-semibold">Embedding Playground</h1>
+      <div className="flex h-full w-96 shrink-0 flex-col space-y-12 overflow-y-auto border-r bg-gray-50 p-4">
+        <div className="flex flex-grow flex-col space-y-8">
+          <h1 className="font-semibold">Embedding Playground</h1>
           {/* TEXT EMBEDDINGS START */}
           <div className="flex flex-col space-y-4">
             <h3 className="text-sm">Text</h3>
@@ -77,7 +77,7 @@ const Home = observer(() => {
             {/* MATH EMBEDDINGS END */}
           </div>
         </div>
-        <footer className="mt-auto pt-4 text-center text-sm">
+        <footer className="mt-auto text-center text-sm">
           <a href="https://github.com/john-sungjin/embedding-playground">
             <GitHubLogoIcon
               className="-mt-0.5 mr-2 inline-block"
