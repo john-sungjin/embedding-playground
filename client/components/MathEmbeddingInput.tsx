@@ -69,7 +69,7 @@ export const MathEmbeddingInput = observer(
         {/* MATH EMBEDDING INPUT START */}
         <div className="flex flex-row space-x-4">
           <Textarea
-            placeholder="Enter expression..."
+            placeholder="Enter expression (e.g. a0 + a1)"
             value={rawExpression}
             onChange={(e) => {
               setRawExpression(e.target.value);

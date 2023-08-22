@@ -25,7 +25,7 @@ const Home = observer(() => {
         <h1 className="font-semibold">Embedding Playground</h1>
         {/* TEXT EMBEDDINGS START */}
         <div className="flex flex-col space-y-4">
-          <h3 className="text-sm">Text Embeddings</h3>
+          <h3 className="text-sm">Text</h3>
           <ModelSelector model={model} setModel={setModel} />
           <div className="flex flex-col space-y-4">
             {Array.from(embedStore.textEmbeddings).map(([name, embedding]) => (
@@ -50,7 +50,7 @@ const Home = observer(() => {
         {/* TEXT EMBEDDINGS END */}
         {/* MATH EMBEDDINGS START */}
         <div className="flex flex-col space-y-4">
-          <h3 className="text-sm">Math Embeddings</h3>
+          <h3 className="text-sm">Formulas</h3>
           <div className="flex flex-col space-y-4">
             {Array.from(embedStore.mathEmbeddings).map(([name, embedding]) => (
               <MathEmbeddingInput
@@ -75,8 +75,19 @@ const Home = observer(() => {
       {/* SIDEBAR END */}
       {/* VIEW START */}
       <div className="flex h-full w-full flex-col space-y-12 overflow-y-auto bg-gray-100 p-4">
-        <SimilarityMatrix />
-        <Pca />
+        {embedStore.allValidEmbeddings.size ? (
+          <>
+            <SimilarityMatrix />
+            <Pca />
+          </>
+        ) : (
+          <>
+            <p>
+              Welcome to the embeddings explorer! Add some text on the left, and
+              see similarity + PCA on the right.
+            </p>
+          </>
+        )}
       </div>
       {/* VIEW END */}
     </main>

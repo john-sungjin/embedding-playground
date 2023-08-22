@@ -3,6 +3,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +25,7 @@ export const LayoutInner = ({ children }: { children: React.ReactNode }) => {
       client={queryClient}
       persistOptions={{ persister }}
     >
-      {children}
+      <TooltipProvider>{children}</TooltipProvider>
     </PersistQueryClientProvider>
   );
 };
