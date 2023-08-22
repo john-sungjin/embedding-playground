@@ -50,7 +50,7 @@ export const Pca: React.FC = observer(() => {
     const plot = Plot.plot({
       grid: true,
       nice: true,
-      title: "PCA",
+      inset: 20,
       marks: [
         Plot.dot(data, {
           x: "Component 1",
@@ -80,10 +80,10 @@ export const Pca: React.FC = observer(() => {
 
   return (
     <>
-      <div>
-        Pca explained variance:
-        <pre>{JSON.stringify(totalExplainedVariance)}</pre>
-        {/* <br />
+      <h2 className="pt-4 text-xl">PCA</h2>
+      <div className="pb-2">
+        Explained variance: {totalExplainedVariance}
+        {/*
         New vectors:
         <pre>{JSON.stringify(Array.from(pred), null, 2)}</pre> */}
       </div>
