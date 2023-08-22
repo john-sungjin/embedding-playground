@@ -79,8 +79,12 @@ const Home = observer(() => {
         </div>
         <footer className="mt-auto pt-4 text-center text-sm">
           <a href="https://github.com/john-sungjin/embedding-playground">
-            <GitHubLogoIcon className="inline-block" width={18} height={18} />
-          </a>{" "}
+            <GitHubLogoIcon
+              className="-mt-0.5 mr-2 inline-block"
+              width={18}
+              height={18}
+            />
+          </a>
           by <a href="https://twitter.com/john_sungjin">John Kim</a> and{" "}
           <a href="https://harshal.sheth.io/about">Harshal Sheth</a>
         </footer>
