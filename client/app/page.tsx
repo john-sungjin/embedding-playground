@@ -77,7 +77,7 @@ const Home = observer(() => {
             {/* MATH EMBEDDINGS END */}
           </div>
         </div>
-        <footer className="mt-auto text-center text-sm">
+        <footer className="mt-auto text-center text-xs text-gray-500">
           <a href="https://github.com/john-sungjin/embedding-playground">
             <GitHubLogoIcon
               className="-mt-0.5 mr-2 inline-block"
@@ -85,8 +85,22 @@ const Home = observer(() => {
               height={18}
             />
           </a>
-          by <a href="https://twitter.com/john_sungjin">John Kim</a> and{" "}
-          <a href="https://harshal.sheth.io/about">Harshal Sheth</a>
+          by{" "}
+          <a
+            href="https://twitter.com/john_sungjin"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            John Kim
+          </a>{" "}
+          and{" "}
+          <a
+            href="https://harshal.sheth.io/about"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Harshal Sheth
+          </a>
         </footer>
       </div>
       {/* SIDEBAR END */}
