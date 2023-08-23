@@ -17,6 +17,11 @@ import {
 import { useEffect, useState } from "react";
 import { INSTRUCTION_MODELS } from "@/components/ModelSelector";
 import { useEmbedding } from "@/components/useEmbeddings";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 const TEXT_EDIT_TIMEOUT = 1000;
 
@@ -91,9 +96,20 @@ export const TextEmbeddingInput = observer(
                 <SymbolIcon className="h-3 w-3 animate-spin text-blue-700" />
               </div>
             ) : embedding.isOutdated || embedding.vector === null ? (
-              <div className="flex h-6 w-6 items-center justify-center rounded bg-yellow-100">
-                <ExclamationTriangleIcon className="h-3.5 w-3.5 text-yellow-700" />
-              </div>
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger>
+                  <div className="flex h-6 w-6 items-center justify-center rounded bg-yellow-100">
+                    <ExclamationTriangleIcon className="h-3.5 w-3.5 text-yellow-700" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {rawText === "" && rawInstruction === "" ? (
+                    <p>Enter some text!</p>
+                  ) : (
+                    <p>Refreshing soon...</p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
             ) : null}
           </div>
           <Button

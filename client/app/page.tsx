@@ -55,6 +55,15 @@ const Home = observer(() => {
           <div className="flex flex-col space-y-4">
             <h3 className="text-sm">Formulas</h3>
             <div className="flex flex-col space-y-4">
+              {embedStore.mathEmbeddings.size === 0 && (
+                <div className="space-y-1">
+                  <p className="text-xs leading-5 text-gray-500">
+                    Transform text embeddings with arithmetic! Use their names
+                    (e.g. <span className="font-mono">a0</span>) in mathematical
+                    expressions.
+                  </p>
+                </div>
+              )}
               {Array.from(embedStore.mathEmbeddings).map(
                 ([name, embedding]) => (
                   <MathEmbeddingInput
