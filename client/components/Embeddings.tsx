@@ -94,6 +94,13 @@ export class Embeddings {
                 ];
               },
             );
+
+            if (entries.length === 0) {
+              entries.push([
+                `${TEXT_EMBED_PREFIX}0`,
+                new TextEmbedding("", "", false, false, null),
+              ]);
+            }
             return new Map<string, TextEmbedding>(entries);
           },
         },
