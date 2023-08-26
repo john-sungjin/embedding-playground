@@ -43,5 +43,6 @@ COPY . .
 RUN useradd -m appuser
 USER appuser
 
+ENV WEB_CONCURRENCY=4
 EXPOSE 8000
 CMD [".venv/bin/uvicorn", "src.server:app", "--host", "0.0.0.0", "--port", "8000"]
