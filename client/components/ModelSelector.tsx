@@ -104,25 +104,27 @@ export const ModelSelector = observer(
         {OPENAI_MODELS.has(model.name) && (
           <>
             <Label>
-              API Key{" "}
-              <Tooltip>
+              OpenAI API Key
+              <Tooltip delayDuration={0}>
                 <TooltipTrigger>
-                  <InfoCircledIcon className="inline-block" />
+                  <InfoCircledIcon className="ml-1 inline-block" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="max-w-sm">
+                  <p className="max-w-xs">
                     API requests are sent directly to OpenAPI from the browser.
                     Our server does not ever see this API key.
                   </p>
-                </TooltipContent>{" "}
+                </TooltipContent>
               </Tooltip>
             </Label>
             <Input
-              placeholder="Enter API key..."
+              placeholder="sk-..."
               value={model.api_key ?? ""}
               onChange={(e) => {
                 setModel({ ...model, api_key: e.target.value });
               }}
+              type="password"
+              className="bg-white"
             />
           </>
         )}
