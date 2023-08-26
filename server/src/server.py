@@ -24,6 +24,7 @@ Models = Literal[
     "hkunlp/instructor-xl",
     "hkunlp/instructor-large",
     "thenlper/gte-large",
+    "BAAI/bge-large-en",
     "Salesforce/codet5p-110m-embedding",
     "Salesforce/codet5p-2b",
     "text-embedding-ada-002",
@@ -36,6 +37,7 @@ INSTRUCTOR_MODELS = {
 SENTENCE_TRANSFORMERS_MODELS = {
     "thenlper/gte-large",
     "sentence-transformers/all-mpnet-base-v2",
+    "BAAI/bge-large-en",
 }
 
 

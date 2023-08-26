@@ -38,6 +38,7 @@
                 "hkunlp/instructor-xl",
                 "hkunlp/instructor-large",
                 "thenlper/gte-large",
+                "BAAI/bge-large-en",
                 "Salesforce/codet5p-110m-embedding",
                 "Salesforce/codet5p-2b",
                 "text-embedding-ada-002",

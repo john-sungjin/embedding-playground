@@ -30,6 +30,7 @@ const models: { value: ModelName; label: string }[] = [
     label: "OpenAI Ada v2",
   },
   { value: "thenlper/gte-large", label: "GTE Large" },
+  { value: "BAAI/bge-large-en", label: "BGE Large En" },
   {
     value: "sentence-transformers/all-mpnet-base-v2",
     label: "All MPNet Base v2",
