@@ -397,6 +397,17 @@ files = [
 ]
 
 [[package]]
+name = "diskcache"
+version = "5.6.1"
+description = "Disk Cache -- Disk and file backed persistent cache."
+optional = false
+python-versions = ">=3"
+files = [
+    {file = "diskcache-5.6.1-py3-none-any.whl", hash = "sha256:558c6a2d5d7c721bb00e40711803d6804850c9f76c426ed81ecc627fe9d2ce2d"},
+    {file = "diskcache-5.6.1.tar.gz", hash = "sha256:e4c978532feff5814c4cc00fe1e11e40501985946643d73220d41ee7737c72c3"},
+]
+
+[[package]]
 name = "executing"
 version = "1.2.0"
 description = "Get the currently executing AST node of a frame, and other information"
@@ -2368,4 +2379,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "09d179f8ebebc51ed6f7fd8556afdf35fcf12a85a074d228526762582f20ec0b"
+content-hash = "ce472ce4f915ac719a4e819bfda314f898068e358101b5f788bf46e3380d1f11"

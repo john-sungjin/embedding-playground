@@ -16,6 +16,7 @@ transformers = "^4.31.0"
 sentence-transformers = "^2.2.2"
 fastapi = "^0.101.0"
 uvicorn = "^0.23.2"
+diskcache = "^5.6.1"
 
 [[tool.poetry.source]]
 name = "PyPI"

@@ -1,4 +1,4 @@
-version: '2'
+version: "2"
 
 services:
   client:
@@ -11,8 +11,8 @@ services:
       traefik.http.routers.embedding-playground-client.middlewares: SecureTLS
       com.centurylinklabs.watchtower.enable: "false"
     networks:
-       - traefik
-       - default
+      - traefik
+      - default
   server:
     build: server
     restart: always
@@ -23,13 +23,14 @@ services:
       traefik.http.routers.embedding-playground-server.middlewares: SecureTLS
       com.centurylinklabs.watchtower.enable: "false"
     networks:
-       - traefik
-       - default
+      - traefik
+      - default
     ports:
       - 8000
     volumes:
       - ./cache/huggingface:/home/appuser/.cache/huggingface/
       - ./cache/torch:/home/appuser/.cache/torch/
+      - ./cache/embeddings:/app/cache/embeddings/
 
 networks:
   traefik:

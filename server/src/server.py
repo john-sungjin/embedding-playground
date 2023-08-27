@@ -1,7 +1,9 @@
+import os
 from typing import Literal
 
 import fastapi
 import torch
+from diskcache import Cache
 from InstructorEmbedding import INSTRUCTOR
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
@@ -41,6 +43,9 @@ SENTENCE_TRANSFORMERS_MODELS = {
 SENTENCE_TRANFORMER_INSTRUCTION_MODELS = {
     "BAAI/bge-large-en",
 }
+
+cache_directory = "./cache/embeddings"
+cache = Cache(eviction_policy="least-recently-used")
 
 
 class GenerateEmbeddingResponse(BaseModel):
@@ -87,11 +92,9 @@ def _generate_embedding_codet5_generic(text: str) -> torch.Tensor:
     return text_embed
 
 
-@app.get("/api/generate_embedding", response_model=GenerateEmbeddingResponse)
-def generate_embedding(
+def _generate_embedding_uncached(
     embed_model_name: Models,
     text: str,
-    # Instruction is only used by certain models.
     instruction: str | None = None,
 ) -> GenerateEmbeddingResponse:
     if embed_model_name in INSTRUCTOR_MODELS:
@@ -128,6 +131,27 @@ def generate_embedding(
         length=len(embedding),
         embedding=embedding.tolist(),
     )
+
+
+@app.get("/api/generate_embedding", response_model=GenerateEmbeddingResponse)
+def generate_embedding(
+    response: fastapi.Response,
+    embed_model_name: Models,
+    text: str,
+    # Instruction is only used by certain models.
+    instruction: str | None = None,
+) -> GenerateEmbeddingResponse:
+    key = (embed_model_name, text, instruction)
+
+    unset = object()
+    res = cache.get(key, default=unset)
+    if res is not unset:
+        response.headers["X-Cache"] = "HIT"
+        return res  # type: ignore
+
+    res = _generate_embedding_uncached(embed_model_name, text, instruction)
+    cache[key] = res
+    return res
 
 
 def use_route_names_as_operation_ids(app: fastapi.FastAPI) -> None:
