@@ -37,6 +37,8 @@ INSTRUCTOR_MODELS = {
 SENTENCE_TRANSFORMERS_MODELS = {
     "thenlper/gte-large",
     "sentence-transformers/all-mpnet-base-v2",
+}
+SENTENCE_TRANFORMER_INSTRUCTION_MODELS = {
     "BAAI/bge-large-en",
 }
 
@@ -89,7 +91,7 @@ def _generate_embedding_codet5_generic(text: str) -> torch.Tensor:
 def generate_embedding(
     embed_model_name: Models,
     text: str,
-    # Instruction is only required for the instructor model.
+    # Instruction is only used by certain models.
     instruction: str | None = None,
 ) -> GenerateEmbeddingResponse:
     if embed_model_name in INSTRUCTOR_MODELS:
@@ -104,6 +106,13 @@ def generate_embedding(
 
     elif embed_model_name in SENTENCE_TRANSFORMERS_MODELS:
         model = SentenceTransformer(embed_model_name)
+
+        if SENTENCE_TRANFORMER_INSTRUCTION_MODELS:
+            # See https://huggingface.co/BAAI/bge-large-en#using-sentence-transformers.
+            assert instruction is not None
+            input = instruction + text
+        else:
+            input = text
 
         embedding = model.encode([text], convert_to_numpy=False)[0]
     elif embed_model_name == "Salesforce/codet5p-110m-embedding":

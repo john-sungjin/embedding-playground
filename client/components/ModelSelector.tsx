@@ -45,6 +45,7 @@ const models: { value: ModelName; label: string }[] = [
 export const INSTRUCTION_MODELS = new Set([
   "hkunlp/instructor-large",
   "hkunlp/instructor-xl",
+  "BAAI/bge-large-en",
 ]);
 export const OPENAI_MODELS = new Set(["text-embedding-ada-002"]);
 
