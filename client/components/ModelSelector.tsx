@@ -25,6 +25,8 @@ import { observer } from "mobx-react-lite";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 const models: { value: ModelName; label: string }[] = [
+  { value: "text-embedding-3-small", label: "OpenAI 3 Small" },
+  { value: "text-embedding-3-large", label: "OpenAI 3 Large" },
   {
     value: "text-embedding-ada-002",
     label: "OpenAI Ada v2",
@@ -47,7 +49,11 @@ export const INSTRUCTION_MODELS = new Set([
   "hkunlp/instructor-xl",
   "BAAI/bge-large-en",
 ]);
-export const OPENAI_MODELS = new Set(["text-embedding-ada-002"]);
+export const OPENAI_MODELS = new Set([
+  "text-embedding-ada-002",
+  "text-embedding-3-small",
+  "text-embedding-3-large",
+]);
 
 export const ModelSelector = observer(
   ({

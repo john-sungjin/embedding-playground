@@ -1,4 +1,3 @@
-import os
 from typing import Literal
 
 import fastapi
@@ -30,6 +29,8 @@ Models = Literal[
     "Salesforce/codet5p-110m-embedding",
     "Salesforce/codet5p-2b",
     "text-embedding-ada-002",
+    "text-embedding-3-small",
+    "text-embedding-3-large",
     "sentence-transformers/all-mpnet-base-v2",
 ]
 INSTRUCTOR_MODELS = {
